@@ -1,0 +1,29 @@
+{
+  "name": "kangwon-food-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "dev:api": "turbo dev --filter=@kangwon/api",
+    "dev:web": "turbo dev --filter=@kangwon/web",
+    "dev:tablet": "turbo dev --filter=@kangwon/tablet",
+    "dev:kitchen": "turbo dev --filter=@kangwon/kitchen",
+    "db:generate": "turbo db:generate --filter=@kangwon/db",
+    "db:migrate": "turbo db:migrate --filter=@kangwon/db",
+    "db:seed": "turbo db:seed --filter=@kangwon/db",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.8.2"
+  },
+  "packageManager": "npm@10.8.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

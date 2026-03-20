@@ -1,0 +1,16 @@
+{
+  "name": "@kangwon/ai",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/genai": "^1.31.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
