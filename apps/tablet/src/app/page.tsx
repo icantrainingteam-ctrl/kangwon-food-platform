@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Icon } from '@iconify/react';
 import { MenuBrowser } from '../components/MenuBrowser';
 import { Cart } from '../components/Cart';
 import { OrderStatus } from '../components/OrderStatus';
@@ -16,7 +17,7 @@ export default function TabletPage() {
   const [lang, setLang] = useState<Language>('ko');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [tableNumber] = useState(1); // QR 스캔으로 결정
+  const [tableNumber] = useState(1);
 
   const addToCart = (item: CartItem) => {
     setCart(prev => {
@@ -43,44 +44,88 @@ export default function TabletPage() {
     ));
   };
 
-  // --- 환영 화면 ---
+  // --- Welcome Screen ---
   if (view === 'welcome') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-white p-8">
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-slate-800 mb-2">강원</h1>
-          <p className="text-xl text-orange-600 font-medium">KANGWON</p>
-          <p className="text-sm text-slate-500 mt-1">K-Food Restaurant</p>
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden"
+           style={{ backgroundColor: 'var(--color-surface)' }}>
+        {/* Decorative elements */}
+        <div className="absolute top-12 left-8 w-24 h-24 rounded-full opacity-[0.04] animate-float"
+             style={{ backgroundColor: 'var(--color-gold)' }} />
+        <div className="absolute bottom-24 right-12 w-32 h-32 rounded-full opacity-[0.03] animate-float"
+             style={{ backgroundColor: 'var(--color-gold)', animationDelay: '2s' }} />
+        <div className="absolute top-1/3 right-8 w-16 h-16 rounded-full opacity-[0.05] animate-float"
+             style={{ backgroundColor: 'var(--color-primary)', animationDelay: '1s' }} />
+
+        {/* Brand */}
+        <div className="text-center mb-14 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6 shadow-sm"
+               style={{ backgroundColor: 'var(--color-gold-light)' }}>
+            <Icon icon="solar:chef-hat-heart-bold-duotone" width={40}
+                  style={{ color: 'var(--color-gold)' }} />
+          </div>
+          <h1 className="text-5xl font-bold tracking-tight"
+              style={{ color: 'var(--color-text-primary)' }}>
+            강원
+          </h1>
+          <p className="text-sm font-semibold tracking-[0.2em] mt-2"
+             style={{ color: 'var(--color-gold)' }}>
+            KANGWON
+          </p>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <div className="w-8 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+            <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+              Authentic K-Food
+            </p>
+            <div className="w-8 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+          </div>
         </div>
 
-        <div className="w-full max-w-md space-y-4">
+        {/* Actions */}
+        <div className="w-full max-w-sm space-y-3 animate-fade-in-up stagger-2">
           <button
             onClick={() => setView('menu')}
-            className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold rounded-2xl shadow-lg transition-all active:scale-95"
+            className="group w-full py-5 text-white text-lg font-bold rounded-2xl transition-all duration-500 ease-premium hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
+            style={{ backgroundColor: 'var(--color-text-primary)' }}
           >
-            🍽️ 메뉴 보기 / Browse Menu
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <Icon icon="solar:book-2-bold-duotone" width={22} />
+              {lang === 'ko' ? '메뉴 보기' : lang === 'en' ? 'Browse Menu' : 'Tingnan ang Menu'}
+            </span>
           </button>
 
           <button
-            onClick={() => {/* TODO: 직원 호출 */}}
-            className="w-full py-4 bg-white border-2 border-slate-200 text-slate-700 text-lg font-medium rounded-2xl hover:border-orange-300 transition-all"
+            onClick={() => {/* TODO: staff call */}}
+            className="group w-full py-4 text-sm font-semibold rounded-2xl transition-all duration-500 ease-premium hover:scale-[1.02] active:scale-[0.98] border"
+            style={{
+              backgroundColor: 'var(--color-card)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-secondary)',
+            }}
           >
-            🙋 직원 호출 / Call Staff
+            <span className="flex items-center justify-center gap-2">
+              <Icon icon="solar:bell-bold-duotone" width={18}
+                    style={{ color: 'var(--color-gold)' }} />
+              {lang === 'ko' ? '직원 호출' : lang === 'en' ? 'Call Staff' : 'Tumawag ng Staff'}
+            </span>
           </button>
         </div>
 
-        <div className="mt-8">
+        {/* Language */}
+        <div className="mt-10 animate-fade-in-up stagger-3">
           <LanguageSelector lang={lang} onChange={setLang} />
         </div>
 
-        <p className="mt-12 text-xs text-slate-400">
-          Table #{tableNumber} · Powered by 강원푸드 iCAN Platform
+        {/* Footer */}
+        <p className="mt-14 text-[11px] tracking-wide"
+           style={{ color: 'var(--color-text-tertiary)' }}>
+          Table {tableNumber} · 강원푸드
         </p>
       </div>
     );
   }
 
-  // --- 메뉴 브라우징 ---
+  // --- Menu ---
   if (view === 'menu') {
     return (
       <MenuBrowser
@@ -94,7 +139,7 @@ export default function TabletPage() {
     );
   }
 
-  // --- 장바구니 ---
+  // --- Cart ---
   if (view === 'cart') {
     return (
       <Cart
@@ -113,7 +158,7 @@ export default function TabletPage() {
     );
   }
 
-  // --- 주문 상태 ---
+  // --- Order Status ---
   if (view === 'order_status' && orderId) {
     return (
       <OrderStatus
@@ -125,7 +170,7 @@ export default function TabletPage() {
     );
   }
 
-  // --- 피드백 ---
+  // --- Feedback ---
   if (view === 'feedback') {
     return (
       <FeedbackForm

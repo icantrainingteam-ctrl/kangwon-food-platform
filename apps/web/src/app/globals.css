@@ -1,8 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #f97316;
-  --color-primary-dark: #ea580c;
-  --color-secondary: #1e293b;
-  --color-accent: #10b981;
+  --w-bg: #09090b;
+  --w-surface: #111113;
+  --w-surface-hover: #18181b;
+  --w-elevated: #1e1e22;
+  --w-border: #27272a;
+  --w-border-light: #2e2e33;
+  --w-text: #fafafa;
+  --w-text-dim: #a1a1aa;
+  --w-text-muted: #71717a;
+  --w-accent: #f97316;
+  --w-accent-dim: rgba(249, 115, 22, 0.10);
+  --w-success: #22c55e;
+  --w-success-dim: rgba(34, 197, 94, 0.10);
+  --w-warning: #eab308;
+  --w-warning-dim: rgba(234, 179, 8, 0.10);
+  --w-danger: #ef4444;
+  --w-danger-dim: rgba(239, 68, 68, 0.10);
+  --w-info: #3b82f6;
+  --w-info-dim: rgba(59, 130, 246, 0.10);
+  --w-purple: #a855f7;
+  --w-purple-dim: rgba(168, 85, 247, 0.10);
 }
+
+* {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  word-break: keep-all;
+}
+
+html { scroll-behavior: smooth; }
+
+.ease-premium {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--w-border); border-radius: 4px; }

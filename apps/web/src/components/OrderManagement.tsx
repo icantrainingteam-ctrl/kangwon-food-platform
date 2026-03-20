@@ -1,19 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Clock, CheckCircle2, ChefHat, CreditCard, XCircle } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { api } from '../lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Bell }> = {
-  pending: { label: '대기', color: 'bg-slate-100 text-slate-700', icon: Clock },
-  confirmed: { label: '접수', color: 'bg-blue-100 text-blue-700', icon: CheckCircle2 },
-  preparing: { label: '조리중', color: 'bg-yellow-100 text-yellow-700', icon: ChefHat },
-  ready: { label: '서빙대기', color: 'bg-emerald-100 text-emerald-700', icon: Bell },
-  served: { label: '서빙완료', color: 'bg-purple-100 text-purple-700', icon: CheckCircle2 },
-  paid: { label: '결제완료', color: 'bg-emerald-200 text-emerald-800', icon: CreditCard },
-  cancelled: { label: '취소', color: 'bg-red-100 text-red-700', icon: XCircle },
+const STATUS_CONFIG: Record<string, { label: string; color: string; dimColor: string; icon: string }> = {
+  pending: { label: '대기', color: 'var(--w-text-dim)', dimColor: 'var(--w-surface)', icon: 'solar:clock-circle-bold' },
+  confirmed: { label: '접수', color: 'var(--w-info)', dimColor: 'var(--w-info-dim)', icon: 'solar:check-circle-bold' },
+  preparing: { label: '조리중', color: 'var(--w-warning)', dimColor: 'var(--w-warning-dim)', icon: 'solar:chef-hat-bold' },
+  ready: { label: '서빙대기', color: 'var(--w-success)', dimColor: 'var(--w-success-dim)', icon: 'solar:bell-bold' },
+  served: { label: '서빙완료', color: 'var(--w-purple)', dimColor: 'var(--w-purple-dim)', icon: 'solar:check-circle-bold' },
+  paid: { label: '결제완료', color: 'var(--w-success)', dimColor: 'var(--w-success-dim)', icon: 'solar:card-bold' },
+  cancelled: { label: '취소', color: 'var(--w-danger)', dimColor: 'var(--w-danger-dim)', icon: 'solar:close-circle-bold' },
 };
 
 export function OrderManagement() {
@@ -55,19 +55,21 @@ export function OrderManagement() {
   }, {});
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800">주문 관리</h2>
-        <p className="text-slate-500 mt-1">실시간 주문 현황 · 오늘 {orders.length}건</p>
+        <h2 className="text-3xl font-bold" style={{ color: 'var(--w-text)' }}>주문 관리</h2>
+        <p className="mt-1" style={{ color: 'var(--w-text-muted)' }}>실시간 주문 현황 · 오늘 {orders.length}건</p>
       </div>
 
       {/* 상태 필터 */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-2 mb-6 flex-wrap p-1 rounded-xl" style={{ background: 'var(--w-surface)' }}>
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${
-            filter === 'all' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'
-          }`}
+          className="px-4 py-2 rounded-lg text-sm font-medium ease-premium"
+          style={{
+            background: filter === 'all' ? 'var(--w-accent)' : 'transparent',
+            color: filter === 'all' ? '#000' : 'var(--w-text-dim)',
+          }}
         >
           전체 ({orders.length})
         </button>
@@ -75,9 +77,11 @@ export function OrderManagement() {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium ${
-              filter === key ? 'bg-orange-500 text-white' : config.color
-            }`}
+            className="px-3 py-2 rounded-lg text-sm font-medium ease-premium"
+            style={{
+              background: filter === key ? 'var(--w-elevated)' : 'transparent',
+              color: filter === key ? config.color : 'var(--w-text-dim)',
+            }}
           >
             {config.label} ({statusCounts[key] ?? 0})
           </button>
@@ -88,51 +92,57 @@ export function OrderManagement() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredOrders.length > 0 ? filteredOrders.map((order: any) => {
           const config = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
-          const Icon = config.icon;
           const metadata = order.metadata as Record<string, unknown>;
           const elapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 1000);
           const mins = Math.floor(elapsed / 60);
 
           return (
-            <div key={order.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div
+              key={order.id}
+              className="rounded-2xl border overflow-hidden ease-premium"
+              style={{ background: 'var(--w-surface)', borderColor: 'var(--w-border)' }}
+            >
+              <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--w-border)' }}>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-orange-600">#{order.orderNumber}</span>
+                  <span className="text-lg font-bold" style={{ color: 'var(--w-accent)' }}>#{order.orderNumber}</span>
                   {order.tableId && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--w-info-dim)', color: 'var(--w-info)' }}>
                       T{tables.find((t: any) => t.id === order.tableId)?.number ?? '?'}
                     </span>
                   )}
                   {metadata?.buzzerNumber && (
-                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--w-warning-dim)', color: 'var(--w-warning)' }}>
                       벨 #{String(metadata.buzzerNumber)}
                     </span>
                   )}
                 </div>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${config.color}`}>
-                  <Icon size={12} /> {config.label}
+                <span
+                  className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1"
+                  style={{ background: config.dimColor, color: config.color }}
+                >
+                  <Icon icon={config.icon} width={12} /> {config.label}
                 </span>
               </div>
 
               <div className="p-4">
-                <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                  <Clock size={12} />
+                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--w-text-muted)' }}>
+                  <Icon icon="solar:clock-circle-linear" width={12} />
                   <span>{mins}분 전</span>
                   <span>·</span>
                   <span>{metadata?.serviceMode === 'counter' ? '카운터' : metadata?.serviceMode === 'table_tablet' ? '태블릿' : '직원 주문'}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500">결제 금액</span>
-                  <span className="text-lg font-bold text-slate-800">₱{Number(order.finalAmount).toLocaleString()}</span>
+                  <span className="text-sm" style={{ color: 'var(--w-text-dim)' }}>결제 금액</span>
+                  <span className="text-lg font-bold" style={{ color: 'var(--w-text)' }}>₱{Number(order.finalAmount).toLocaleString()}</span>
                 </div>
               </div>
             </div>
           );
         }) : (
-          <div className="col-span-full bg-white rounded-xl p-12 text-center border">
-            <Bell size={48} className="text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-400">
+          <div className="col-span-full rounded-2xl p-12 text-center border" style={{ background: 'var(--w-surface)', borderColor: 'var(--w-border)' }}>
+            <Icon icon="solar:bell-bold" width={48} className="mx-auto mb-3" style={{ color: 'var(--w-text-muted)' }} />
+            <p style={{ color: 'var(--w-text-muted)' }}>
               {filter === 'all' ? '오늘 주문이 없습니다' : `"${STATUS_CONFIG[filter]?.label}" 상태의 주문이 없습니다`}
             </p>
           </div>

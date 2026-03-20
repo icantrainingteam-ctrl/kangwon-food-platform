@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="bg-slate-50 min-h-screen">
+      <head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+      </head>
+      <body className="min-h-screen" style={{ backgroundColor: 'var(--w-bg)', color: 'var(--w-text)' }}>
         {children}
       </body>
     </html>

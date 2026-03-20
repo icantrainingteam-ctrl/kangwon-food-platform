@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { Language, CartItem } from '@kangwon/shared';
 
 interface CartProps {
@@ -49,14 +49,19 @@ export function Cart({ lang, items, onUpdateQuantity, onRemove, onBack, onOrder,
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
-        <ShoppingCart size={64} className="text-slate-300 mb-4" />
-        <p className="text-slate-500 text-lg">
-          {lang === 'ko' ? '장바구니가 비어있습니다' : 'Your cart is empty'}
+      <div className="min-h-screen flex flex-col items-center justify-center p-8"
+           style={{ backgroundColor: 'var(--color-surface)' }}>
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5 animate-float"
+             style={{ backgroundColor: 'var(--color-surface-warm)' }}>
+          <Icon icon="solar:bag-3-bold-duotone" width={36} style={{ color: 'var(--color-border)' }} />
+        </div>
+        <p className="text-base font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
+          {lang === 'ko' ? '아직 담은 메뉴가 없어요' : 'Your cart is empty'}
         </p>
         <button
           onClick={onBack}
-          className="mt-6 px-6 py-3 bg-orange-500 text-white rounded-xl font-medium"
+          className="mt-8 px-8 py-3 rounded-xl font-semibold text-sm transition-all duration-500 ease-premium hover:scale-[1.02] active:scale-[0.98]"
+          style={{ backgroundColor: 'var(--color-text-primary)', color: '#ffffff' }}
         >
           {lang === 'ko' ? '메뉴 보기' : 'Browse Menu'}
         </button>
@@ -65,76 +70,120 @@ export function Cart({ lang, items, onUpdateQuantity, onRemove, onBack, onOrder,
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* 헤더 */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-        <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full">
-          <ArrowLeft size={24} className="text-slate-600" />
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-surface)' }}>
+      {/* Header */}
+      <header className="px-4 py-4 flex items-center gap-3 sticky top-0 z-10 glass"
+              style={{ backgroundColor: 'rgba(250, 248, 245, 0.85)', borderBottom: '1px solid var(--color-border-light)' }}>
+        <button onClick={onBack}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border-light)' }}>
+          <Icon icon="solar:arrow-left-linear" width={20} style={{ color: 'var(--color-text-secondary)' }} />
         </button>
-        <h1 className="text-xl font-bold text-slate-800">
-          {lang === 'ko' ? '장바구니' : 'Cart'} ({items.length})
-        </h1>
+        <div>
+          <h1 className="text-lg font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+            {lang === 'ko' ? '주문 확인' : 'Your Order'}
+          </h1>
+          <p className="text-[11px]" style={{ color: 'var(--color-text-tertiary)' }}>
+            {items.length} {lang === 'ko' ? '개 메뉴' : 'items'}
+          </p>
+        </div>
       </header>
 
-      {/* 아이템 목록 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {items.map(item => (
-          <div key={item.menuItem.id} className="bg-slate-50 rounded-xl p-4 flex items-center gap-4">
-            <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-              🍽️
+      {/* Items */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+        {items.map((item, i) => (
+          <div key={item.menuItem.id}
+               className="rounded-2xl p-4 flex items-center gap-4 animate-fade-in-up transition-all duration-300"
+               style={{
+                 backgroundColor: 'var(--color-card)',
+                 border: '1px solid var(--color-border-light)',
+                 animationDelay: `${i * 0.05}s`,
+               }}>
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style={{ backgroundColor: 'var(--color-surface-warm)' }}>
+              <Icon icon="solar:bowl-bold-duotone" width={24} style={{ color: 'var(--color-border)' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-slate-800 text-sm truncate">{item.menuItem.name}</h3>
-              <p className="text-orange-600 font-bold text-sm mt-1">
+              <h3 className="font-bold text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
+                {item.menuItem.name}
+              </h3>
+              <p className="font-bold text-sm mt-1" style={{ color: 'var(--color-gold)' }}>
                 ₱{(item.menuItem.price * item.quantity).toLocaleString()}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => onUpdateQuantity(item.menuItem.id, item.quantity - 1)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center"
+                className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-light)' }}
               >
-                {item.quantity === 1 ? <Trash2 size={14} className="text-red-500" /> : <Minus size={14} />}
+                {item.quantity === 1
+                  ? <Icon icon="solar:trash-bin-minimalistic-linear" width={15} style={{ color: '#dc2626' }} />
+                  : <Icon icon="solar:minus-circle-linear" width={15} style={{ color: 'var(--color-text-secondary)' }} />
+                }
               </button>
-              <span className="font-bold text-slate-800 w-6 text-center">{item.quantity}</span>
+              <span className="font-bold text-sm w-5 text-center tabular-nums"
+                    style={{ color: 'var(--color-text-primary)' }}>
+                {item.quantity}
+              </span>
               <button
                 onClick={() => onUpdateQuantity(item.menuItem.id, item.quantity + 1)}
-                className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"
+                className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                style={{ backgroundColor: 'var(--color-gold-light)' }}
               >
-                <Plus size={14} className="text-orange-600" />
+                <Icon icon="solar:add-circle-linear" width={15} style={{ color: 'var(--color-gold)' }} />
               </button>
             </div>
           </div>
         ))}
 
-        {/* 특별 요청 */}
-        <div className="mt-4">
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            {lang === 'ko' ? '요청사항 (선택)' : 'Special Request (optional)'}
+        {/* Special Request */}
+        <div className="mt-3 animate-fade-in-up stagger-3">
+          <label className="text-xs font-semibold mb-2 block tracking-wide"
+                 style={{ color: 'var(--color-text-tertiary)' }}>
+            {lang === 'ko' ? '요청사항' : 'Special Request'}
           </label>
           <textarea
             value={specialRequest}
             onChange={(e) => setSpecialRequest(e.target.value)}
             placeholder={lang === 'ko' ? '예: 덜 맵게 해주세요' : 'e.g., Less spicy please'}
-            className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none h-20"
+            className="w-full p-4 rounded-2xl text-sm resize-none h-20 transition-all duration-300 focus:outline-none focus:ring-2"
+            style={{
+              backgroundColor: 'var(--color-card)',
+              border: '1px solid var(--color-border-light)',
+              color: 'var(--color-text-primary)',
+            }}
           />
         </div>
       </div>
 
-      {/* 하단 결제 */}
-      <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4 space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-slate-600">{lang === 'ko' ? '합계' : 'Total'}</span>
-          <span className="text-2xl font-bold text-orange-600">₱{total.toLocaleString()}</span>
+      {/* Bottom Order Section */}
+      <div className="sticky bottom-0 p-4 space-y-4 glass"
+           style={{ backgroundColor: 'rgba(250, 248, 245, 0.92)', borderTop: '1px solid var(--color-border-light)' }}>
+        <div className="flex justify-between items-center px-1">
+          <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+            {lang === 'ko' ? '합계' : 'Total'}
+          </span>
+          <span className="text-2xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+            ₱{total.toLocaleString()}
+          </span>
         </div>
         <button
           onClick={handleOrder}
           disabled={isOrdering}
-          className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white text-lg font-bold rounded-2xl shadow-lg transition-all active:scale-95"
+          className="w-full py-4 text-white text-base font-bold rounded-2xl transition-all duration-500 ease-premium hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+          style={{ backgroundColor: 'var(--color-text-primary)' }}
         >
           {isOrdering
-            ? (lang === 'ko' ? '주문 중...' : 'Ordering...')
-            : (lang === 'ko' ? `주문하기 (Table #${tableNumber})` : `Place Order (Table #${tableNumber})`)}
+            ? <span className="flex items-center justify-center gap-2">
+                <Icon icon="solar:refresh-bold" width={18} className="animate-spin" />
+                {lang === 'ko' ? '주문 처리 중' : 'Ordering...'}
+              </span>
+            : <span className="flex items-center justify-center gap-2">
+                <Icon icon="solar:check-circle-bold" width={20} />
+                {lang === 'ko' ? `주문하기 · Table ${tableNumber}` : `Place Order · Table ${tableNumber}`}
+              </span>
+          }
         </button>
       </div>
     </div>

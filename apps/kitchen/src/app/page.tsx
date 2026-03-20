@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChefHat, Clock, Bell, CheckCircle2, AlertTriangle, Volume2 } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { KitchenOrderView } from '@kangwon/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -10,14 +10,11 @@ export default function KitchenPage() {
   const [orders, setOrders] = useState<KitchenOrderView[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing'>('all');
   const [stats, setStats] = useState({ totalOrders: 0, completedOrders: 0, pendingOrders: 0 });
-  const [servingAlerts, setServingAlerts] = useState<string[]>([]);
 
-  // 주방 대기열 폴링
   const fetchQueue = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/kitchen/queue`);
-      const data = await res.json();
-      setOrders(data);
+      setOrders(await res.json());
     } catch (err) {
       console.error('Failed to fetch queue:', err);
     }
@@ -37,14 +34,12 @@ export default function KitchenPage() {
     return () => clearInterval(interval);
   }, [fetchQueue, fetchStats]);
 
-  // SSE 실시간 이벤트
   useEffect(() => {
     const eventSource = new EventSource(`${API_URL}/ws?role=kitchen`);
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'order:created') {
-          // 새 주문 알림 사운드
           playAlert();
           fetchQueue();
         }
@@ -54,11 +49,9 @@ export default function KitchenPage() {
   }, [fetchQueue]);
 
   const playAlert = () => {
-    // 브라우저 알림 사운드 (실제 구현 시 Audio API 사용)
     if ('vibrate' in navigator) navigator.vibrate(200);
   };
 
-  // 아이템 상태 업데이트
   const updateItemStatus = async (itemId: string, status: string) => {
     await fetch(`${API_URL}/api/kitchen/item/${itemId}/status`, {
       method: 'PATCH',
@@ -69,9 +62,9 @@ export default function KitchenPage() {
   };
 
   const getElapsedColor = (seconds: number) => {
-    if (seconds > 900) return 'text-red-400'; // 15분 초과
-    if (seconds > 600) return 'text-yellow-400'; // 10분 초과
-    return 'text-emerald-400';
+    if (seconds > 900) return 'var(--kds-danger)';
+    if (seconds > 600) return 'var(--kds-warning)';
+    return 'var(--kds-success)';
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -86,44 +79,52 @@ export default function KitchenPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-900 p-4">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between mb-4">
+    <div className="min-h-screen p-5" style={{ backgroundColor: 'var(--kds-bg)' }}>
+      {/* Header */}
+      <header className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <ChefHat size={32} className="text-orange-500" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+               style={{ backgroundColor: 'var(--kds-accent-dim)' }}>
+            <Icon icon="solar:chef-hat-bold-duotone" width={22} style={{ color: 'var(--kds-accent)' }} />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">강원 주방</h1>
-            <p className="text-sm text-slate-400">Kitchen Display System</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--kds-text)' }}>
+              강원 주방
+            </h1>
+            <p className="text-[11px]" style={{ color: 'var(--kds-text-muted)' }}>Kitchen Display System</p>
           </div>
         </div>
 
-        {/* 통계 */}
-        <div className="flex gap-4 text-sm">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-orange-400">{stats.pendingOrders}</p>
-            <p className="text-slate-500">대기중</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-emerald-400">{stats.completedOrders}</p>
-            <p className="text-slate-500">완료</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-slate-300">{stats.totalOrders}</p>
-            <p className="text-slate-500">전체</p>
-          </div>
+        {/* Stats */}
+        <div className="flex gap-5">
+          {[
+            { label: '대기', value: stats.pendingOrders, color: 'var(--kds-accent)', bg: 'var(--kds-accent-dim)' },
+            { label: '완료', value: stats.completedOrders, color: 'var(--kds-success)', bg: 'var(--kds-success-dim)' },
+            { label: '전체', value: stats.totalOrders, color: 'var(--kds-text)', bg: 'var(--kds-surface)' },
+          ].map(s => (
+            <div key={s.label} className="text-center">
+              <div className="px-4 py-1.5 rounded-lg mb-1" style={{ backgroundColor: s.bg }}>
+                <p className="text-xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
+              </div>
+              <p className="text-[10px] font-medium" style={{ color: 'var(--kds-text-muted)' }}>{s.label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* 필터 */}
-        <div className="flex gap-2">
+        {/* Filters */}
+        <div className="flex gap-1.5 p-1 rounded-xl" style={{ backgroundColor: 'var(--kds-surface)' }}>
           {(['all', 'pending', 'preparing'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === f
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
+              className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 ease-premium"
+              style={filter === f ? {
+                backgroundColor: 'var(--kds-accent)',
+                color: '#ffffff',
+              } : {
+                backgroundColor: 'transparent',
+                color: 'var(--kds-text-muted)',
+              }}
             >
               {f === 'all' ? '전체' : f === 'pending' ? '대기' : '조리중'}
             </button>
@@ -131,85 +132,106 @@ export default function KitchenPage() {
         </div>
       </header>
 
-      {/* 주문 카드 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredOrders.map(order => (
+      {/* Order Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {filteredOrders.map((order, idx) => (
           <div
             key={order.id}
-            className={`bg-slate-800 rounded-xl overflow-hidden border-2 ${
-              order.priority === 'rush'
-                ? 'border-red-500 animate-pulse'
-                : 'border-slate-700'
-            }`}
+            className="rounded-2xl overflow-hidden animate-fade-in-up transition-all duration-300"
+            style={{
+              backgroundColor: 'var(--kds-surface)',
+              border: order.priority === 'rush'
+                ? '2px solid var(--kds-danger)'
+                : '1px solid var(--kds-border)',
+              animationDelay: `${idx * 0.04}s`,
+              ...(order.priority === 'rush' ? { animation: 'fadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) both, pulseRing 2s infinite' } : {}),
+            }}
           >
-            {/* 주문 헤더 */}
-            <div className="bg-slate-750 px-4 py-3 flex items-center justify-between border-b border-slate-700">
+            {/* Order Header */}
+            <div className="px-4 py-3 flex items-center justify-between"
+                 style={{ borderBottom: '1px solid var(--kds-border)' }}>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold text-orange-400">#{order.orderNumber}</span>
+                <span className="text-lg font-bold tabular-nums" style={{ color: 'var(--kds-accent)' }}>
+                  #{order.orderNumber}
+                </span>
                 {order.serviceMode === 'counter' && order.buzzerNumber && (
-                  <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Bell size={10} /> 벨 {order.buzzerNumber}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"
+                        style={{ backgroundColor: 'var(--kds-warning-dim)', color: 'var(--kds-warning)' }}>
+                    <Icon icon="solar:bell-bold" width={10} />
+                    {order.buzzerNumber}
                   </span>
                 )}
                 {order.tableNumber && (
-                  <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        style={{ backgroundColor: 'rgba(59,130,246,0.12)', color: '#60a5fa' }}>
                     T{order.tableNumber}
                   </span>
                 )}
               </div>
-              <div className={`flex items-center gap-1 ${getElapsedColor(order.elapsedTime)}`}>
-                <Clock size={14} />
-                <span className="text-sm font-mono">{formatTime(order.elapsedTime)}</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Icon icon="solar:clock-circle-linear" width={13} style={{ color: getElapsedColor(order.elapsedTime) }} />
+                  <span className="text-xs font-mono tabular-nums" style={{ color: getElapsedColor(order.elapsedTime) }}>
+                    {formatTime(order.elapsedTime)}
+                  </span>
+                </div>
+                {order.priority === 'rush' && (
+                  <Icon icon="solar:danger-triangle-bold" width={16} style={{ color: 'var(--kds-danger)' }} />
+                )}
               </div>
-              {order.priority === 'rush' && (
-                <AlertTriangle size={18} className="text-red-400" />
-              )}
             </div>
 
-            {/* 메뉴 아이템 */}
-            <div className="p-3 space-y-2">
+            {/* Menu Items */}
+            <div className="p-3 space-y-1.5">
               {order.items.map(item => (
                 <div
                   key={item.id}
-                  className={`flex items-center justify-between p-2 rounded-lg ${
-                    item.status === 'ready' ? 'bg-emerald-900/30' :
-                    item.status === 'preparing' ? 'bg-yellow-900/30' :
-                    'bg-slate-700/50'
-                  }`}
+                  className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-300 animate-slide-in"
+                  style={{
+                    backgroundColor: item.status === 'ready' ? 'var(--kds-success-dim)'
+                      : item.status === 'preparing' ? 'var(--kds-warning-dim)'
+                      : 'rgba(255,255,255,0.03)',
+                  }}
                 >
-                  <div className="flex-1">
-                    <span className="font-medium text-sm">
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm" style={{ color: 'var(--kds-text)' }}>
                       {item.quantity > 1 && (
-                        <span className="text-orange-400 font-bold mr-1">x{item.quantity}</span>
+                        <span className="font-bold mr-1.5" style={{ color: 'var(--kds-accent)' }}>x{item.quantity}</span>
                       )}
                       {item.name}
                     </span>
                     {item.specialRequest && (
-                      <p className="text-xs text-yellow-400 mt-0.5">⚠ {item.specialRequest}</p>
+                      <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--kds-warning)' }}>
+                        <Icon icon="solar:danger-triangle-linear" width={11} />
+                        {item.specialRequest}
+                      </p>
                     )}
                   </div>
 
-                  {/* 상태 버튼 */}
-                  <div className="flex gap-1">
+                  {/* Status Actions */}
+                  <div className="flex gap-1.5 ml-2">
                     {item.status === 'pending' && (
                       <button
                         onClick={() => updateItemStatus(item.id, 'preparing')}
-                        className="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold rounded-lg"
+                        className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: 'var(--kds-warning)', color: '#000' }}
                       >
-                        조리 시작
+                        조리
                       </button>
                     )}
                     {item.status === 'preparing' && (
                       <button
                         onClick={() => updateItemStatus(item.id, 'ready')}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg"
+                        className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: 'var(--kds-success)', color: '#000' }}
                       >
                         완료
                       </button>
                     )}
                     {item.status === 'ready' && (
-                      <span className="text-emerald-400 text-xs flex items-center gap-1">
-                        <CheckCircle2 size={14} /> 완료
+                      <span className="flex items-center gap-1 text-[11px] font-medium px-2"
+                            style={{ color: 'var(--kds-success)' }}>
+                        <Icon icon="solar:check-circle-bold" width={14} />
                       </span>
                     )}
                   </div>
@@ -217,19 +239,24 @@ export default function KitchenPage() {
               ))}
             </div>
 
-            {/* 서빙 모드 표시 */}
-            <div className="px-4 py-2 border-t border-slate-700 text-xs text-slate-500">
+            {/* Service Mode Footer */}
+            <div className="px-4 py-2.5 flex items-center gap-1.5 text-[11px]"
+                 style={{ borderTop: '1px solid var(--kds-border)', color: 'var(--kds-text-muted)' }}>
+              <Icon icon={order.serviceMode === 'counter' ? 'solar:bell-bing-linear' : 'solar:hand-stars-linear'} width={12} />
               {order.serviceMode === 'counter'
-                ? `🔔 진동벨 #${(order as any).buzzerNumber ?? '?'} → 픽업/서빙`
-                : `🙋 테이블 #${order.tableNumber ?? '?'} → 직접 서빙`}
+                ? `벨 #${(order as any).buzzerNumber ?? '?'} · 픽업`
+                : `테이블 #${order.tableNumber ?? '?'} · 직접 서빙`}
             </div>
           </div>
         ))}
 
         {filteredOrders.length === 0 && (
-          <div className="col-span-full text-center py-20">
-            <ChefHat size={64} className="text-slate-700 mx-auto mb-4" />
-            <p className="text-slate-500 text-lg">대기 중인 주문이 없습니다</p>
+          <div className="col-span-full text-center py-24">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                 style={{ backgroundColor: 'var(--kds-surface)' }}>
+              <Icon icon="solar:chef-hat-bold-duotone" width={32} style={{ color: 'var(--kds-border-light)' }} />
+            </div>
+            <p className="text-sm" style={{ color: 'var(--kds-text-muted)' }}>대기 중인 주문이 없습니다</p>
           </div>
         )}
       </div>
