@@ -87,6 +87,7 @@ export interface KitchenOrderView {
   totalPrepTime: number; // 예상 총 조리 시간
   elapsedTime: number; // 경과 시간 (초)
   priority: 'normal' | 'rush' | 'vip';
+  buzzerNumber?: number;
   createdAt: string;
 }
 
