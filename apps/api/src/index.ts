@@ -33,8 +33,35 @@ app.use('*', cors({
 }));
 app.use('*', logger());
 
-// Health check
-app.get('/health', (c) => c.json({ status: 'ok', service: 'kangwon-api', timestamp: new Date().toISOString() }));
+// 글로벌 에러 핸들러
+app.onError((err, c) => {
+  console.error('API Error:', err.message, err.stack);
+  return c.json({ error: err.message, stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined }, 500);
+});
+
+// Health check + DB 연결 상태
+app.get('/health', async (c) => {
+  let dbStatus = 'unknown';
+  try {
+    const { db } = await import('@kangwon/db');
+    const result = await db.execute(require('drizzle-orm').sql`SELECT 1 as ok`);
+    dbStatus = 'connected';
+  } catch (err: any) {
+    dbStatus = `error: ${err.message}`;
+  }
+  return c.json({
+    status: 'ok',
+    service: 'kangwon-api',
+    db: dbStatus,
+    env: {
+      DB_HOST: process.env.DB_HOST ? 'set' : 'missing',
+      DB_USER: process.env.DB_USER ? 'set' : 'missing',
+      DB_PASSWORD: process.env.DB_PASSWORD ? 'set' : 'missing',
+      PORT: process.env.PORT,
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // API Routes
 app.route('/api/orders', orderRoutes);
