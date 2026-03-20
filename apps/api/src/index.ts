@@ -20,7 +20,15 @@ const app = new Hono();
 
 // Middleware
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+  origin: (origin) => {
+    // 로컬 개발
+    if (origin?.startsWith('http://localhost:')) return origin;
+    // Vercel 배포
+    if (origin?.endsWith('.vercel.app')) return origin;
+    // 커스텀 도메인 (추후 설정)
+    if (origin?.endsWith('.kangwonfood.com')) return origin;
+    return 'https://kangwon-web.vercel.app';
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
 }));
 app.use('*', logger());

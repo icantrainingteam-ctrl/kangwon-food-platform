@@ -1,0 +1,25 @@
+# Render.com Blueprint - API 서버 자동 배포 설정
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: kangwon-api
+    runtime: node
+    region: singapore  # 필리핀에서 가장 가까운 리전
+    plan: free
+    buildCommand: npm install
+    startCommand: npx tsx apps/api/src/index.ts
+    rootDir: .  # 모노레포 루트
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: DATABASE_URL
+        fromGroup: kangwon-secrets
+      - key: GEMINI_API_KEY
+        fromGroup: kangwon-secrets
+      - key: CLAUDE_API_KEY
+        fromGroup: kangwon-secrets
+    healthCheckPath: /health
+    autoDeploy: true
