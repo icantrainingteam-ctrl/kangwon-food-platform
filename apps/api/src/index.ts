@@ -64,7 +64,11 @@ console.log(`
 ╚══════════════════════════════════════════╝
 `);
 
-// 이벤트 파이프라인 시작
-startPipeline();
+// 이벤트 파이프라인 시작 (DB 연결 실패해도 서버는 실행)
+try {
+  startPipeline();
+} catch (err) {
+  console.error('Pipeline start deferred:', err);
+}
 
 serve({ fetch: app.fetch, port });
