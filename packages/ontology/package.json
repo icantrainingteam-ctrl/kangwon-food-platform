@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@kangwon/db": "workspace:*"
+    "@kangwon/db": "*"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

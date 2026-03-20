@@ -30,3 +30,4 @@ drizzle/
 
 # Misc
 *.tsbuildinfo
+.vercel
