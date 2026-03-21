@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import type { Language, MenuItemView, CartItem } from '@kangwon/shared';
+import { getMenuImage } from '../lib/menuImages';
 
 interface MenuBrowserProps {
   lang: Language;
@@ -119,10 +120,15 @@ export function MenuBrowser({ lang, cart, onAddToCart, onViewCart, onBack, cartI
               {/* Image Area */}
               <div className="aspect-[4/3] relative overflow-hidden"
                    style={{ backgroundColor: 'var(--color-surface-warm)' }}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Icon icon="solar:bowl-bold-duotone" width={40}
-                        style={{ color: 'var(--color-border)', opacity: 0.5 }} />
-                </div>
+                {getMenuImage(item.name) ? (
+                  <img src={getMenuImage(item.name)!} alt={item.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Icon icon="solar:bowl-bold-duotone" width={40}
+                          style={{ color: 'var(--color-border)', opacity: 0.5 }} />
+                  </div>
+                )}
                 {item.isPopular && (
                   <span className="absolute top-2.5 left-2.5 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1"
                         style={{ backgroundColor: 'var(--color-primary)' }}>

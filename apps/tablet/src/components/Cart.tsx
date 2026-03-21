@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import type { Language, CartItem } from '@kangwon/shared';
+import { getMenuImage } from '../lib/menuImages';
 
 interface CartProps {
   lang: Language;
@@ -99,9 +100,16 @@ export function Cart({ lang, items, onUpdateQuantity, onRemove, onBack, onOrder,
                  border: '1px solid var(--color-border-light)',
                  animationDelay: `${i * 0.05}s`,
                }}>
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            <div className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden"
                  style={{ backgroundColor: 'var(--color-surface-warm)' }}>
-              <Icon icon="solar:bowl-bold-duotone" width={24} style={{ color: 'var(--color-border)' }} />
+              {getMenuImage(item.menuItem.name) ? (
+                <img src={getMenuImage(item.menuItem.name)!} alt={item.menuItem.name}
+                  className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Icon icon="solar:bowl-bold-duotone" width={24} style={{ color: 'var(--color-border)' }} />
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
