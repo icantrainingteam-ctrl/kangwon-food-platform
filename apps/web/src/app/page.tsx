@@ -46,14 +46,30 @@ export default function ManagerDashboard() {
       <aside className="w-60 flex flex-col fixed h-full"
              style={{ backgroundColor: 'var(--w-surface)', borderRight: '1px solid var(--w-border)' }}>
         <div className="p-5 pb-4" style={{ borderBottom: '1px solid var(--w-border)' }}>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                 style={{ backgroundColor: 'var(--w-accent-dim)' }}>
-              <Icon icon="solar:chef-hat-heart-bold-duotone" width={18} style={{ color: 'var(--w-accent)' }} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                   style={{ backgroundColor: 'var(--w-accent-dim)' }}>
+                <Icon icon="solar:chef-hat-heart-bold-duotone" width={18} style={{ color: 'var(--w-accent)' }} />
+              </div>
+              <div>
+                <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--w-text)' }}>강원</h1>
+                <p className="text-[10px]" style={{ color: 'var(--w-text-muted)' }}>{time}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--w-text)' }}>강원</h1>
-              <p className="text-[10px]" style={{ color: 'var(--w-text-muted)' }}>{time}</p>
+            <div className="flex items-center gap-1.5">
+              <a href="https://kangwon-tablet.vercel.app" target="_blank" rel="noopener noreferrer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ease-premium hover:scale-110"
+                style={{ backgroundColor: 'var(--w-elevated)' }}
+                title="태블릿 주문">
+                <Icon icon="solar:tablet-bold-duotone" width={16} style={{ color: 'var(--w-text-muted)' }} />
+              </a>
+              <a href="https://kangwon-kitchen.vercel.app" target="_blank" rel="noopener noreferrer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ease-premium hover:scale-110"
+                style={{ backgroundColor: 'var(--w-elevated)' }}
+                title="주방 KDS">
+                <Icon icon="solar:chef-hat-bold-duotone" width={16} style={{ color: 'var(--w-text-muted)' }} />
+              </a>
             </div>
           </div>
         </div>
