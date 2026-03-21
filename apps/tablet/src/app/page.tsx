@@ -12,29 +12,29 @@ import type { CartItem } from '@kangwon/shared';
 
 type TabletView = 'welcome' | 'menu' | 'cart' | 'order_status' | 'feedback';
 
-// Hero slides
+// Hero slides (Unsplash CDN - 안정적 로딩)
 const HERO_SLIDES = [
-  { image: 'https://public.readdy.ai/ai/img_res/4abfa58cd95eaf997fe44d1671a597c4.jpg', titleKo: '강원도의 맛을 마닐라에서', titleEn: 'Taste of Gangwon in Manila', subtitleKo: '청정 자연의 신선한 재료로 만든 건강한 한 끼', subtitleEn: 'Healthy meals with fresh natural ingredients' },
-  { image: 'https://readdy.ai/api/search-image?query=Authentic%20Korean%20bibimbap%20in%20traditional%20stone%20bowl%20with%20colorful%20fresh%20vegetables%2C%20perfectly%20fried%20egg%20on%20top%2C%20gochujang%20sauce%20on%20side%2C%20served%20on%20wooden%20table%2C%20professional%20food%20photography%2C%20top%20view%2C%20vibrant%20colors%2C%20steam%20rising%2C%20appetizing%20presentation%20with%20Korean%20side%20dishes%2C%20natural%20lighting&width=1920&height=1080&seq=hero2&orientation=landscape', titleKo: '정통 한식의 진수', titleEn: 'Authentic Korean Cuisine', subtitleKo: '한국인 셰프가 직접 조리하는 프리미엄 K-Food', subtitleEn: 'Premium K-Food crafted by Korean chefs' },
-  { image: 'https://readdy.ai/api/search-image?query=Korean%20BBQ%20grill%20with%20premium%20marbled%20beef%20cooking%20on%20traditional%20charcoal%20grill%2C%20smoke%20rising%2C%20accompanied%20by%20fresh%20lettuce%20wraps%20and%20various%20Korean%20banchan%20side%20dishes%2C%20professional%20food%20photography%2C%20warm%20lighting%2C%20appetizing%20presentation%2C%20authentic%20Korean%20dining%20experience%2C%20close-up%20shot&width=1920&height=1080&seq=hero3&orientation=landscape', titleKo: '프리미엄 한국식 바비큐', titleEn: 'Premium Korean BBQ', subtitleKo: '숯불에 구워 더욱 깊은 풍미를 경험하세요', subtitleEn: 'Experience the deep flavors of charcoal grilling' },
+  { image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=1200&h=600&fit=crop', titleKo: '강원도의 맛을 마닐라에서', titleEn: 'Taste of Gangwon in Manila', subtitleKo: '청정 자연의 신선한 재료로 만든 건강한 한 끼', subtitleEn: 'Healthy meals with fresh natural ingredients' },
+  { image: 'https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=1200&h=600&fit=crop', titleKo: '정통 한식의 진수', titleEn: 'Authentic Korean Cuisine', subtitleKo: '한국인 셰프가 직접 조리하는 프리미엄 K-Food', subtitleEn: 'Premium K-Food crafted by Korean chefs' },
+  { image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=1200&h=600&fit=crop', titleKo: '프리미엄 한국식 바비큐', titleEn: 'Premium Korean BBQ', subtitleKo: '숯불에 구워 더욱 깊은 풍미를 경험하세요', subtitleEn: 'Experience the deep flavors of charcoal grilling' },
 ];
 
-// Popular menu showcase
+// Popular menu showcase (Unsplash CDN)
 const POPULAR_MENU = [
-  { name: '불고기', nameEn: 'Bulgogi', price: 450, image: 'https://readdy.ai/api/search-image?query=Korean%20bulgogi%20marinated%20grilled%20beef%20with%20caramelized%20edges%20garnished%20with%20sesame%20seeds%20and%20sliced%20green%20onions%20served%20with%20lettuce%20wraps%20professional%20food%20photography%20clean%20white%20background%20centered%20composition%20appetizing%20presentation&width=500&height=400&seq=menu2ko&orientation=landscape', rating: 4.8 },
-  { name: '삼겹살', nameEn: 'Samgyeopsal', price: 480, image: 'https://readdy.ai/api/search-image?query=Korean%20samgyeopsal%20grilled%20pork%20belly%20slices%20cooking%20on%20grill%20with%20lettuce%20wraps%20ssamjang%20sauce%20various%20side%20dishes%20professional%20food%20photography%20clean%20white%20background%20centered%20composition%20sizzling%20appetizing%20presentation&width=500&height=400&seq=menu4ko&orientation=landscape', rating: 4.9 },
-  { name: '비빔밥', nameEn: 'Bibimbap', price: 350, image: 'https://readdy.ai/api/search-image?query=traditional%20Korean%20bibimbap%20in%20stone%20pot%20with%20colorful%20fresh%20vegetables%20carrots%20spinach%20bean%20sprouts%20mushrooms%20perfectly%20cooked%20fried%20egg%20on%20top%20gochujang%20sauce%20on%20side%20professional%20food%20photography%20top%20down%20view%20vibrant%20colors%20clean%20white%20background%20centered%20composition%20appetizing%20presentation&width=500&height=400&seq=menu1ko&orientation=landscape', rating: 4.7 },
-  { name: '김치찌개', nameEn: 'Kimchi Jjigae', price: 320, image: 'https://readdy.ai/api/search-image?query=Korean%20kimchi%20jjigae%20in%20traditional%20stone%20pot%20bubbling%20hot%20broth%20with%20tofu%20pork%20kimchi%20vibrant%20red%20color%20steam%20rising%20professional%20food%20photography%20clean%20white%20background%20centered%20composition%20appetizing%20presentation&width=500&height=400&seq=menu3ko&orientation=landscape', rating: 4.8 },
-  { name: '떡볶이', nameEn: 'Tteokbokki', price: 250, image: 'https://readdy.ai/api/search-image?query=Korean%20tteokbokki%20spicy%20rice%20cakes%20in%20red%20gochujang%20sauce%20with%20fish%20cake%20boiled%20egg%20garnished%20with%20sesame%20seeds%20and%20green%20onions%20professional%20food%20photography%20clean%20white%20background%20centered%20composition%20vibrant%20red%20color&width=500&height=400&seq=menu6ko&orientation=landscape', rating: 4.6 },
-  { name: '잡채', nameEn: 'Japchae', price: 280, image: 'https://readdy.ai/api/search-image?query=Korean%20japchae%20glass%20noodles%20stir%20fried%20with%20colorful%20vegetables%20beef%20sesame%20seeds%20on%20white%20plate%20professional%20food%20photography%20clean%20white%20background%20centered%20composition%20appetizing%20presentation&width=500&height=400&seq=menu5ko&orientation=landscape', rating: 4.7 },
+  { name: '불고기', nameEn: 'Bulgogi', price: 450, image: 'https://images.unsplash.com/photo-1583224964978-2257b960c3d3?w=500&h=400&fit=crop', rating: 4.8 },
+  { name: '삼겹살', nameEn: 'Samgyeopsal', price: 480, image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=500&h=400&fit=crop', rating: 4.9 },
+  { name: '비빔밥', nameEn: 'Bibimbap', price: 350, image: 'https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=500&h=400&fit=crop', rating: 4.7 },
+  { name: '김치찌개', nameEn: 'Kimchi Jjigae', price: 320, image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=500&h=400&fit=crop', rating: 4.8 },
+  { name: '떡볶이', nameEn: 'Tteokbokki', price: 250, image: 'https://images.unsplash.com/photo-1635363638580-c2809d049eee?w=500&h=400&fit=crop', rating: 4.6 },
+  { name: '잡채', nameEn: 'Japchae', price: 280, image: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=500&h=400&fit=crop', rating: 4.7 },
 ];
 
-// Menu categories
+// Menu categories (Unsplash CDN)
 const CATEGORIES = [
-  { name: '메인 요리', nameEn: 'Main Dishes', icon: 'solar:chef-hat-bold-duotone', image: 'https://public.readdy.ai/ai/img_res/84b4c68f95329597ff760af882ede6a3.jpg' },
-  { name: '바비큐', nameEn: 'BBQ', icon: 'solar:fire-bold-duotone', image: 'https://readdy.ai/api/search-image?query=%ED%95%9C%EA%B5%AD%EC%8B%9D%20%EA%B5%AC%EC%9D%B4%20%EA%B3%A0%EA%B8%B0%2C%20%EC%84%9D%EC%87%A0%20%EC%9C%84%EC%97%90%EC%84%9C%20%EC%A7%80%EA%B8%80%EC%A7%80%EA%B8%80%20%EA%B5%AC%EC%9B%8C%EC%A7%80%EB%8A%94%20%EB%A7%88%EB%B8%94%EB%A7%81%EC%9D%B4%20%EC%A2%8B%EC%9D%80%20%EA%B3%A0%EA%B8%B0%2C%20%EA%B9%94%EB%81%94%ED%95%9C%20%ED%9D%B0%EC%83%89%20%EB%B0%B0%EA%B2%BD%2C%20%EC%B8%A1%EB%A9%B4%20%EA%B0%81%EB%8F%84%2C%20%EC%97%B0%EA%B8%B0%EA%B0%80%20%EC%82%B4%EC%A7%9D%20%EC%98%AC%EB%9D%BC%EC%98%A4%EB%8A%94%20%EB%AA%A8%EC%8A%B5%2C%20%EC%9D%8C%EC%8B%9D%20%EC%82%AC%EC%A7%84%20%EC%8A%A4%ED%83%80%EC%9D%BC%2C%20%EC%9E%90%EC%97%B0%EA%B4%91%2C%20%EA%B3%A0%ED%92%88%EC%A7%88%20%EC%9D%B4%EB%AF%B8%EC%A7%80&width=800&height=600&seq=cat2&orientation=landscape' },
-  { name: '국 & 찌개', nameEn: 'Soups & Stews', icon: 'solar:cup-hot-bold-duotone', image: 'https://readdy.ai/api/search-image?query=%ED%95%9C%EA%B5%AD%20%EC%A0%84%ED%86%B5%20%EA%B9%80%EC%B9%98%EC%B0%8C%EA%B0%9C%2C%20%EB%9C%A8%EA%B1%B0%EC%9A%B4%20%EB%8F%8C%EC%86%A5%EC%97%90%20%EB%8B%B4%EA%B8%B4%20%EB%B9%A8%EA%B0%84%20%EA%B5%AD%EB%AC%BC%EC%9D%98%20%EA%B9%80%EC%B9%98%EC%B0%8C%EA%B0%9C%2C%20%EA%B9%80%EC%9D%B4%20%EB%AA%A8%EB%9D%BD%EB%AA%A8%EB%9D%BD%20%EB%82%98%EB%8A%94%20%EB%AA%A8%EC%8A%B5%2C%20%EA%B9%94%EB%81%94%ED%95%9C%20%ED%9D%B0%EC%83%89%20%EB%B0%B0%EA%B2%BD%2C%20%EC%B8%A1%EB%A9%B4%20%EA%B0%81%EB%8F%84%2C%20%EC%9D%8C%EC%8B%9D%20%EC%82%AC%EC%A7%84%20%EC%8A%A4%ED%83%80%EC%9D%BC%2C%20%EC%9E%90%EC%97%B0%EA%B4%91%2C%20%EA%B3%A0%ED%92%88%EC%A7%88%20%EC%9D%B4%EB%AF%B8%EC%A7%80&width=800&height=600&seq=cat3&orientation=landscape' },
-  { name: '사이드 & 디저트', nameEn: 'Sides & Dessert', icon: 'solar:donut-bold-duotone', image: 'https://readdy.ai/api/search-image?query=%ED%95%9C%EA%B5%AD%20%EC%A0%84%ED%86%B5%20%EB%B9%99%EC%88%98%2C%20%EB%8B%A4%EC%B1%84%EB%A1%9C%EC%9A%B4%20%EA%B3%BC%EC%9D%BC%EA%B3%BC%20%ED%8C%A5%EC%9D%B4%20%EC%98%AC%EB%A0%A4%EC%A7%84%20%EB%88%88%EC%B2%98%EB%9F%BC%20%EB%B6%80%EB%93%9C%EB%9F%AC%EC%9A%B4%20%EB%B9%99%EC%88%98%2C%20%EA%B9%94%EB%81%94%ED%95%9C%20%ED%9D%B0%EC%83%89%20%EB%B0%B0%EA%B2%BD%2C%20%EC%9C%84%EC%97%90%EC%84%9C%20%EB%82%B4%EB%A0%A4%EB%8B%A4%EB%B3%B8%20%EA%B0%81%EB%8F%84%2C%20%EC%8B%9C%EC%9B%90%ED%95%9C%20%EB%8A%90%EB%82%8C%2C%20%EC%9D%8C%EC%8B%9D%20%EC%82%AC%EC%A7%84%20%EC%8A%A4%ED%83%80%EC%9D%BC%2C%20%EC%9E%90%EC%97%B0%EA%B4%91%2C%20%EA%B3%A0%ED%92%88%EC%A7%88%20%EC%9D%B4%EB%AF%B8%EC%A7%80&width=800&height=600&seq=cat4&orientation=landscape' },
+  { name: '메인 요리', nameEn: 'Main Dishes', icon: 'solar:chef-hat-bold-duotone', image: 'https://images.unsplash.com/photo-1583224964978-2257b960c3d3?w=400&h=300&fit=crop' },
+  { name: '바비큐', nameEn: 'BBQ', icon: 'solar:fire-bold-duotone', image: 'https://images.unsplash.com/photo-1643091577248-e6cb1d285a8f?w=400&h=300&fit=crop' },
+  { name: '국 & 찌개', nameEn: 'Soups & Stews', icon: 'solar:cup-hot-bold-duotone', image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400&h=300&fit=crop' },
+  { name: '사이드 & 디저트', nameEn: 'Sides & Dessert', icon: 'solar:donut-bold-duotone', image: 'https://images.unsplash.com/photo-1580651214613-f4692d6d138f?w=400&h=300&fit=crop' },
 ];
 
 export default function TabletPage() {
@@ -296,7 +296,7 @@ export default function TabletPage() {
                 </div>
               </div>
               <div className="relative">
-                <img src="https://readdy.ai/api/search-image?query=Korean%20chef%20in%20professional%20kitchen%20preparing%20traditional%20Korean%20dishes%20with%20passion%20and%20precision%20warm%20lighting%20authentic%20atmosphere%20professional%20photography&width=600&height=500&seq=chef1&orientation=landscape" alt=""
+                <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&h=500&fit=crop" alt=""
                   className="w-full h-full object-cover" />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, #141414 0%, transparent 30%)' }} />
               </div>
