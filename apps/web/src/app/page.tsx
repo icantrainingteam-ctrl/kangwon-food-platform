@@ -11,8 +11,9 @@ import { StaffManagement } from '../components/StaffManagement';
 import { OrderManagement } from '../components/OrderManagement';
 import { BackOffice } from '../components/BackOffice';
 import { SettingsView } from '../components/SettingsView';
+import { StaffTraining } from '../components/StaffTraining';
 
-type View = 'dashboard' | 'orders' | 'menu_lab' | 'customers' | 'strategy' | 'reports' | 'kitchen_monitor' | 'staff' | 'settings' | 'back_office';
+type View = 'dashboard' | 'orders' | 'menu_lab' | 'customers' | 'strategy' | 'reports' | 'kitchen_monitor' | 'staff' | 'staff_training' | 'settings' | 'back_office';
 
 const NAV_ITEMS: { key: View; label: string; icon: string }[] = [
   { key: 'dashboard', label: 'Command Center', icon: 'solar:widget-5-bold-duotone' },
@@ -23,6 +24,7 @@ const NAV_ITEMS: { key: View; label: string; icon: string }[] = [
   { key: 'reports', label: '리포트', icon: 'solar:chart-2-bold-duotone' },
   { key: 'kitchen_monitor', label: '주방 모니터', icon: 'solar:monitor-bold-duotone' },
   { key: 'staff', label: '직원 관리', icon: 'solar:user-check-bold-duotone' },
+  { key: 'staff_training', label: '직원 교육', icon: 'solar:book-2-bold-duotone' },
   { key: 'back_office', label: '백오피스', icon: 'solar:buildings-2-bold-duotone' },
   { key: 'settings', label: '설정', icon: 'solar:settings-bold-duotone' },
 ];
@@ -99,6 +101,7 @@ export default function ManagerDashboard() {
         {activeView === 'reports' && <ReportsView />}
         {activeView === 'kitchen_monitor' && <KitchenMonitor />}
         {activeView === 'staff' && <StaffManagement />}
+        {activeView === 'staff_training' && <StaffTraining />}
         {activeView === 'back_office' && <BackOffice />}
         {activeView === 'settings' && <SettingsView />}
       </main>

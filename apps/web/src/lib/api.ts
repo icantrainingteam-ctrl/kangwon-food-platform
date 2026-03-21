@@ -50,6 +50,10 @@ export const api = {
   // Finance
   getFinanceSources: () => fetchAPI<any[]>('/api/finance/sources'),
   getTransactions: (limit?: number) => fetchAPI<any[]>(`/api/finance/transactions?limit=${limit ?? 50}`),
+
+  // Training
+  getTrainingRecommendations: (days?: number) => fetchAPI<TrainingRecommendationsData>(`/api/analytics/staff/training/recommendations?days=${days ?? 30}`),
+  getTrainingHeatmap: (days?: number) => fetchAPI<TrainingHeatmapEntry[]>(`/api/analytics/staff/training/heatmap?days=${days ?? 14}`),
 };
 
 // --- Types ---
@@ -182,4 +186,49 @@ export interface FeedbackStats {
   rating3: number;
   rating2: number;
   rating1: number;
+}
+
+export interface TrainingModule {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  duration: string;
+  priority: string;
+  score: number;
+  matchedKeywords: string[];
+  reason?: string;
+}
+
+export interface TrainingStaffRecommendation {
+  staff: { id: string; name: string; role: string };
+  performance: {
+    ordersServed: number;
+    avgRating: number;
+    feedbackCount: number;
+    negativeFeedbacks: number;
+    positiveFeedbacks: number;
+  };
+  riskLevel: 'critical' | 'warning' | 'watch' | 'good';
+  recommendedTraining: TrainingModule[];
+  negativeComments: Array<{ comment: string; rating: number; sentiment: string }>;
+}
+
+export interface TrainingRecommendationsData {
+  period: string;
+  totalStaff: number;
+  atRisk: number;
+  recommendations: TrainingStaffRecommendation[];
+  availableModules: TrainingModule[];
+}
+
+export interface TrainingHeatmapEntry {
+  staffId: string;
+  staffName: string;
+  role: string;
+  date: string;
+  avgRating: number;
+  totalFeedbacks: number;
+  negativeFeedbacks: number;
+  positiveFeedbacks: number;
 }

@@ -366,3 +366,253 @@ analyticsRoutes.get('/menu/ranking', async (c) => {
 
   return c.json(ranking);
 });
+
+// ========================================
+// 직원 교육 추천 엔진
+// ========================================
+
+// --- 직원별 일자별 피드백 히트맵 ---
+analyticsRoutes.get('/staff/training/heatmap', async (c) => {
+  const days = Number(c.req.query('days') ?? 14);
+
+  const heatmap = await db.select({
+    staffId: staff.id,
+    staffName: staff.name,
+    role: staff.role,
+    date: sql<string>`DATE(${feedbacks.createdAt})`,
+    avgRating: sql<number>`ROUND(AVG(${feedbacks.rating}), 2)`,
+    totalFeedbacks: sql<number>`COUNT(${feedbacks.id})`,
+    negativeFeedbacks: sql<number>`COUNT(CASE WHEN ${feedbacks.rating} <= 2 THEN 1 END)`,
+    positiveFeedbacks: sql<number>`COUNT(CASE WHEN ${feedbacks.rating} >= 4 THEN 1 END)`,
+  })
+    .from(staff)
+    .innerJoin(orders, eq(orders.staffId, staff.id))
+    .innerJoin(feedbacks, eq(feedbacks.orderId, orders.id))
+    .where(and(
+      eq(staff.isActive, 1),
+      sql`${feedbacks.createdAt} >= NOW() - INTERVAL '${sql.raw(String(days))} days'`,
+    ))
+    .groupBy(staff.id, sql`DATE(${feedbacks.createdAt})`)
+    .orderBy(staff.name, sql`DATE(${feedbacks.createdAt})`);
+
+  return c.json(heatmap);
+});
+
+// --- 직원별 교육 추천 (AI 분석 기반) ---
+analyticsRoutes.get('/staff/training/recommendations', async (c) => {
+  const days = Number(c.req.query('days') ?? 30);
+
+  // 1) 직원별 성과 + 피드백 키워드 수집
+  const perfData = await db.select({
+    id: staff.id,
+    name: staff.name,
+    role: staff.role,
+    ordersServed: sql<number>`COUNT(DISTINCT ${orders.id})`,
+    avgRating: sql<number>`COALESCE(ROUND(AVG(${feedbacks.rating}), 2), 0)`,
+    feedbackCount: sql<number>`COUNT(DISTINCT ${feedbacks.id})`,
+    negativeFeedbacks: sql<number>`COUNT(CASE WHEN ${feedbacks.rating} <= 2 THEN 1 END)`,
+    neutralFeedbacks: sql<number>`COUNT(CASE WHEN ${feedbacks.rating} = 3 THEN 1 END)`,
+    positiveFeedbacks: sql<number>`COUNT(CASE WHEN ${feedbacks.rating} >= 4 THEN 1 END)`,
+  })
+    .from(staff)
+    .leftJoin(orders, and(
+      eq(orders.staffId, staff.id),
+      sql`${orders.createdAt} >= NOW() - INTERVAL '${sql.raw(String(days))} days'`,
+    ))
+    .leftJoin(feedbacks, eq(feedbacks.orderId, orders.id))
+    .where(and(
+      eq(staff.isActive, 1),
+      sql`${staff.role} IN ('server', 'cashier', 'part_time')`,
+    ))
+    .groupBy(staff.id);
+
+  // 2) 부정 피드백 코멘트 수집 (키워드 분석용)
+  const negativeComments = await db.select({
+    staffId: staff.id,
+    comment: feedbacks.comment,
+    rating: feedbacks.rating,
+    sentiment: feedbacks.sentiment,
+    aiAnalysis: feedbacks.aiAnalysis,
+  })
+    .from(feedbacks)
+    .innerJoin(orders, eq(feedbacks.orderId, orders.id))
+    .innerJoin(staff, eq(orders.staffId, staff.id))
+    .where(and(
+      sql`${feedbacks.createdAt} >= NOW() - INTERVAL '${sql.raw(String(days))} days'`,
+      sql`${feedbacks.rating} <= 3`,
+      sql`${feedbacks.comment} IS NOT NULL`,
+    ));
+
+  // 3) 교육 추천 로직
+  const TRAINING_MODULES = [
+    {
+      id: 'greeting',
+      name: '인사 & 환영 교육',
+      category: '기본 서비스',
+      keywords: ['인사', '무시', '불친절', 'rude', 'greeting', 'ignore', 'cold'],
+      description: '고객 입장 시 한국어+영어 인사, 눈맞춤, 미소 교육',
+      duration: '30분',
+      priority: 'high',
+    },
+    {
+      id: 'food_knowledge',
+      name: 'K-Food 문화 설명 교육',
+      category: '메뉴 지식',
+      keywords: ['설명', '몰라', '뭔지', 'explain', 'what is', 'how to eat', '먹는법'],
+      description: '한국 음식 먹는 방법, 재료, 문화적 배경 설명 훈련',
+      duration: '45분',
+      priority: 'high',
+    },
+    {
+      id: 'speed',
+      name: '서빙 속도 개선 교육',
+      category: '운영 효율',
+      keywords: ['느려', '오래', '기다', 'slow', 'wait', 'long time', 'late'],
+      description: '주문-서빙 시간 단축, 동선 최적화, 멀티태스킹 훈련',
+      duration: '40분',
+      priority: 'medium',
+    },
+    {
+      id: 'attitude',
+      name: '서비스 태도 교육',
+      category: '고객 응대',
+      keywords: ['태도', '불친절', '기분', '화', 'attitude', 'angry', 'unfriendly', 'disrespectful'],
+      description: '미소 서비스, 공감 표현, 스트레스 관리, 감정 노동 대응',
+      duration: '60분',
+      priority: 'critical',
+    },
+    {
+      id: 'refill',
+      name: '반찬/음료 관리 교육',
+      category: '세심한 서비스',
+      keywords: ['반찬', '리필', '물', 'refill', 'water', 'side dish', 'empty'],
+      description: '반찬/음료 상태 주기적 확인, 선제적 리필 서비스 훈련',
+      duration: '20분',
+      priority: 'medium',
+    },
+    {
+      id: 'complaint',
+      name: '클레임 대응 교육',
+      category: '위기 관리',
+      keywords: ['환불', '항의', '클레임', 'complaint', 'refund', 'manager', '사과'],
+      description: '고객 불만 접수→공감→해결→사후관리 4단계 프로세스',
+      duration: '50분',
+      priority: 'critical',
+    },
+    {
+      id: 'upsell',
+      name: '메뉴 추천 & 업셀 교육',
+      category: '매출 기여',
+      keywords: ['추천', '뭐가 맛있', 'recommend', 'what should', 'popular'],
+      description: 'AI 추천 기반 메뉴 제안, 세트메뉴/사이드 업셀 화법',
+      duration: '35분',
+      priority: 'low',
+    },
+    {
+      id: 'language',
+      name: '다국어 소통 교육',
+      category: '커뮤니케이션',
+      keywords: ['못 알아', '영어', '언어', 'understand', 'language', 'english', 'tagalog'],
+      description: '영어/타갈로그 기본 서빙 회화, 메뉴 설명 표현 훈련',
+      duration: '45분',
+      priority: 'medium',
+    },
+    {
+      id: 'hygiene',
+      name: '위생 & 청결 교육',
+      category: '위생 관리',
+      keywords: ['더러', '위생', '깨끗', 'dirty', 'clean', 'hygiene', 'hair'],
+      description: '개인 위생, 테이블 청결, 식기 관리 점검 훈련',
+      duration: '30분',
+      priority: 'high',
+    },
+  ];
+
+  // 4) 직원별 추천 생성
+  const recommendations = perfData.map(s => {
+    const staffComments = negativeComments.filter(c => c.staffId === s.id);
+    const allText = staffComments.map(c => (c.comment ?? '').toLowerCase()).join(' ');
+    const aiKeywords = staffComments
+      .flatMap(c => (c.aiAnalysis as any)?.keywords ?? [])
+      .map((k: string) => k.toLowerCase());
+
+    // 매칭 모듈 찾기
+    const matchedModules = TRAINING_MODULES.map(mod => {
+      let score = 0;
+      let matchedKeywords: string[] = [];
+
+      mod.keywords.forEach(kw => {
+        if (allText.includes(kw)) { score += 2; matchedKeywords.push(kw); }
+        if (aiKeywords.includes(kw)) { score += 3; matchedKeywords.push(kw); }
+      });
+
+      return { ...mod, score, matchedKeywords: [...new Set(matchedKeywords)] };
+    }).filter(m => m.score > 0).sort((a, b) => b.score - a.score);
+
+    // 위험 수준 판정
+    let riskLevel: 'critical' | 'warning' | 'watch' | 'good' = 'good';
+    if (s.avgRating > 0 && s.avgRating < 3) riskLevel = 'critical';
+    else if (s.avgRating >= 3 && s.avgRating < 3.5) riskLevel = 'warning';
+    else if (s.feedbackCount === 0 && s.ordersServed > 5) riskLevel = 'watch';
+    else if (s.negativeFeedbacks > 0 && s.negativeFeedbacks >= s.positiveFeedbacks) riskLevel = 'warning';
+
+    // 자동 추천 (피드백 없는 직원)
+    const autoRecommendations = [];
+    if (s.feedbackCount === 0 && s.ordersServed > 0) {
+      autoRecommendations.push({
+        ...TRAINING_MODULES.find(m => m.id === 'greeting')!,
+        score: 1,
+        matchedKeywords: [],
+        reason: '피드백 실적 없음 — 기본 서비스 교육 필요',
+      });
+      autoRecommendations.push({
+        ...TRAINING_MODULES.find(m => m.id === 'food_knowledge')!,
+        score: 1,
+        matchedKeywords: [],
+        reason: '피드백 실적 없음 — 예방 교육 권장',
+      });
+    }
+
+    // 낮은 평점 직원 자동 추가
+    if (s.avgRating > 0 && s.avgRating < 3.5 && matchedModules.length === 0) {
+      autoRecommendations.push({
+        ...TRAINING_MODULES.find(m => m.id === 'attitude')!,
+        score: 1,
+        matchedKeywords: [],
+        reason: `평균 평점 ${s.avgRating}점 — 서비스 태도 점검 필요`,
+      });
+    }
+
+    const finalModules = [...matchedModules, ...autoRecommendations];
+
+    return {
+      staff: { id: s.id, name: s.name, role: s.role },
+      performance: {
+        ordersServed: s.ordersServed,
+        avgRating: s.avgRating,
+        feedbackCount: s.feedbackCount,
+        negativeFeedbacks: s.negativeFeedbacks,
+        positiveFeedbacks: s.positiveFeedbacks,
+      },
+      riskLevel,
+      recommendedTraining: finalModules.slice(0, 5),
+      negativeComments: staffComments.map(c => ({
+        comment: c.comment,
+        rating: c.rating,
+        sentiment: c.sentiment,
+      })),
+    };
+  });
+
+  // 위험도 순 정렬
+  const riskOrder = { critical: 0, warning: 1, watch: 2, good: 3 };
+  recommendations.sort((a, b) => riskOrder[a.riskLevel] - riskOrder[b.riskLevel]);
+
+  return c.json({
+    period: `${days}일`,
+    totalStaff: recommendations.length,
+    atRisk: recommendations.filter(r => r.riskLevel === 'critical' || r.riskLevel === 'warning').length,
+    recommendations,
+    availableModules: TRAINING_MODULES,
+  });
+});
