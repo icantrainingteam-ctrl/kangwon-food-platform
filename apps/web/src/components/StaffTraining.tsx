@@ -28,7 +28,8 @@ export function StaffTraining() {
   const [heatmap, setHeatmap] = useState<TrainingHeatmapEntry[]>([]);
   const [days, setDays] = useState(30);
   const [selectedStaff, setSelectedStaff] = useState<TrainingStaffRecommendation | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'heatmap' | 'modules'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'heatmap' | 'modules' | 'guide'>('overview');
+  const [guideSection, setGuideSection] = useState<string | null>(null);
 
   useEffect(() => {
     api.getTrainingRecommendations(days).then(setData).catch(() => {});
@@ -97,6 +98,7 @@ export function StaffTraining() {
           { key: 'overview' as const, label: '직원별 교육 추천', icon: 'solar:user-check-bold-duotone' },
           { key: 'heatmap' as const, label: '일자별 만족도 추이', icon: 'solar:chart-square-bold-duotone' },
           { key: 'modules' as const, label: '교육 모듈 목록', icon: 'solar:book-2-bold-duotone' },
+          { key: 'guide' as const, label: '서빙 가이드', icon: 'solar:document-text-bold-duotone' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 ease-premium"
@@ -351,6 +353,11 @@ export function StaffTraining() {
         </div>
       )}
 
+      {/* Tab: Serving Guide */}
+      {activeTab === 'guide' && (
+        <ServingGuideView guideSection={guideSection} setGuideSection={setGuideSection} />
+      )}
+
       {/* Staff Detail Modal */}
       {selectedStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -502,6 +509,370 @@ export function StaffTraining() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ========================================
+// K-Food 서빙 가이드 뷰어
+// ========================================
+
+const GUIDE_SECTIONS = [
+  {
+    id: 'philosophy',
+    title: '운영 철학',
+    subtitle: '국대떡볶이 모델 x 한국 정통 서빙 하이브리드',
+    icon: 'solar:star-bold-duotone',
+    color: 'var(--w-accent)',
+    content: [
+      { type: 'heading', text: '국대떡볶이의 성공 공식' },
+      { type: 'list', items: [
+        '카운터 주문 + 진동벨 + 셀프 픽업 → 인건비 절감, 회전율 극대화',
+        '오픈 키친 → 조리 과정이 보이는 투명성, 라이브 엔터테인먼트 효과',
+        '세트 메뉴 중심 → 주문 간소화, 객단가 안정화',
+      ]},
+      { type: 'heading', text: '강원 하이브리드 모델' },
+      { type: 'comparison', items: [
+        { before: '카운터 주문', after: '카운터 OR 태블릿 주문 (선택)' },
+        { before: '셀프 픽업', after: '한국인 직원이 직접 서빙' },
+        { before: '진동벨', after: '진동벨 + 서빙 알림 시스템' },
+        { before: '셀프 반찬', after: '직원이 반찬 상태 관리 + 리필 안내' },
+      ]},
+      { type: 'highlight', text: '핵심 차별화: 한국인 직원이 서빙하면서 "이렇게 드시면 됩니다"라고 음식 문화를 직접 전달합니다.' },
+    ],
+  },
+  {
+    id: 'service_modes',
+    title: '서비스 모드 (3가지)',
+    subtitle: '시간대별 최적 운영 방식',
+    icon: 'solar:layers-bold-duotone',
+    color: 'var(--w-info)',
+    content: [
+      { type: 'mode', label: 'MODE A', name: '카운터 주문', when: '런치 타임', flow: '고객 입장 → 카운터 주문 → 선결제 → 진동벨 → 조리 → 직원 서빙', pros: '빠른 회전율, 주문 에러 최소화' },
+      { type: 'mode', label: 'MODE B', name: '태블릿 주문', when: '디너 타임', flow: '고객 착석 → QR 스캔 → 태블릿 메뉴 → 주문 → 직원 서빙 + 음식 설명', pros: '높은 객단가, 추가 주문 유도, 데이터 수집' },
+      { type: 'mode', label: 'MODE C', name: '직원 주문', when: 'VIP/룸', flow: '고객 착석 → 직원 메뉴 추천 → 주문 접수 → POS 입력 → 직원 서빙 + 상세 설명', pros: '최고 고객 경험, 업셀링' },
+    ],
+  },
+  {
+    id: 'serving_7steps',
+    title: '서빙 7단계 체크리스트',
+    subtitle: '한국인 직원 서빙 표준 프로세스',
+    icon: 'solar:checklist-bold-duotone',
+    color: 'var(--w-success)',
+    content: [
+      { type: 'step', num: 1, name: '맞이', action: '입구에서 인사', ko: '어서오세요! 강원입니다', en: 'Welcome to Kangwon!', system: '테이블 배정' },
+      { type: 'step', num: 2, name: '안내', action: '테이블 안내 + 주문방법 설명', ko: '메뉴는 태블릿으로 보실 수 있습니다', en: 'You can browse the menu on the tablet', system: '세션 시작' },
+      { type: 'step', num: 3, name: '추천', action: '오늘의 추천 메뉴 안내', ko: '오늘 셰프 추천은 아도보 비빔밥입니다', en: "Today's chef pick is Adobo Bibimbap", system: 'AI 추천 기반' },
+      { type: 'step', num: 4, name: '서빙', action: '음식 전달 + 먹는법 설명', ko: '비빔밥은 고추장 넣고 비벼서 드세요', en: 'Mix the bibimbap with gochujang sauce', system: 'KDS 알림' },
+      { type: 'step', num: 5, name: '확인', action: '서빙 2분 후 테이블 방문', ko: '맛은 괜찮으세요?', en: 'How is everything?', system: '타이머 알림' },
+      { type: 'step', num: 6, name: '리필', action: '반찬/물 상태 수시 확인', ko: '반찬 더 드릴까요?', en: 'Would you like more side dishes?', system: '리필 트래킹' },
+      { type: 'step', num: 7, name: '인사', action: '퇴장 시 감사 인사', ko: '감사합니다! 또 오세요', en: 'Thank you! See you again!', system: '피드백 안내' },
+    ],
+  },
+  {
+    id: 'food_scripts',
+    title: 'K-Food 문화 전달 스크립트',
+    subtitle: '메뉴별 필수 설명 한/영',
+    icon: 'solar:chat-round-dots-bold-duotone',
+    color: 'var(--w-warning)',
+    content: [
+      { type: 'script', menu: '찌개류', ko: '찌개는 뚜껑을 열고 뜨거울 때 밥이랑 같이 드시면 됩니다. 국물에 밥을 말아서 드셔도 맛있어요.', en: "Enjoy the stew while it's hot with rice. You can also put rice into the soup — that's the Korean way!" },
+      { type: 'script', menu: '삼겹살/구이류', ko: '고기는 쌈장 찍어서 상추에 싸서 드시면 됩니다. 마늘이랑 고추도 같이 싸서 드세요.', en: "Wrap the meat in lettuce with ssamjang sauce. Add garlic and chili — we call this 'Ssam' in Korea!" },
+      { type: 'script', menu: '비빔밥', ko: '고추장을 넣고 숟가락으로 잘 비벼서 드세요. 골고루 섞을수록 맛있습니다.', en: 'Add gochujang and mix everything together with a spoon. The more you mix, the better it tastes!' },
+      { type: 'script', menu: '소주', ko: '소주는 한 잔에 다 따르지 않고, 서로 따라주는 게 한국 문화입니다. 건배!', en: 'In Korean culture, we pour drinks for each other. Cheers — Geonbae!' },
+    ],
+  },
+  {
+    id: 'grade_system',
+    title: '직원 등급 시스템',
+    subtitle: '시스템 자동 추적 · 4단계 성장 경로',
+    icon: 'solar:medal-ribbons-star-bold-duotone',
+    color: 'var(--w-purple)',
+    content: [
+      { type: 'grade', level: '루키 (Rookie)', condition: '입사 1개월 미만', role: '물/반찬 서빙, 테이블 정리', training: '선임 직원 동행 서빙', color: 'var(--w-text-muted)' },
+      { type: 'grade', level: '프로 (Professional)', condition: '서빙 100회+, 평점 4.0+', role: '독립 서빙, 메뉴 추천', training: '팁 정산 +10%', color: 'var(--w-info)' },
+      { type: 'grade', level: '마스터 (Master)', condition: '서빙 500회+, 평점 4.5+', role: 'VIP/룸 전담, 신입 교육', training: '팁 정산 +20%, 메뉴 개발 참여', color: 'var(--w-warning)' },
+      { type: 'grade', level: '소믈리에 (Sommelier)', condition: '마스터 + 주류 교육 이수', role: '주류 페어링 추천, 고급 서비스', training: '별도 인센티브', color: 'var(--w-accent)' },
+    ],
+  },
+  {
+    id: 'banchan',
+    title: '반찬 관리 시스템',
+    subtitle: '기본 반찬 세트 & 리필 트래킹',
+    icon: 'solar:bowl-bold-duotone',
+    color: 'var(--w-success)',
+    content: [
+      { type: 'banchan', name: '배추김치', refill: true, cost: 15, note: '신선도 2시간 체크' },
+      { type: 'banchan', name: '깍두기', refill: true, cost: 12, note: '신선도 2시간 체크' },
+      { type: 'banchan', name: '콩나물무침', refill: true, cost: 8, note: '4시간마다 교체' },
+      { type: 'banchan', name: '시금치나물', refill: true, cost: 10, note: '4시간마다 교체' },
+      { type: 'banchan', name: '계란찜', refill: false, cost: 25, note: '추가 ₱80 · 주문 메뉴에 따라 기본 제공' },
+    ],
+  },
+  {
+    id: 'daily_routine',
+    title: '직원 일일 루틴',
+    subtitle: '시간대별 업무 가이드',
+    icon: 'solar:clock-circle-bold-duotone',
+    color: 'var(--w-info)',
+    content: [
+      { type: 'routine', time: '10:00~11:00', label: '오픈 준비', tasks: ['테이블 세팅 (태블릿 충전, 반찬 접시)', '반찬 준비 상태 확인', '오늘의 추천 메뉴 확인 (AI 추천 체크)', '진동벨 작동 테스트', '유니폼 착용, 서빙 도구 준비', '조회: 어제 피드백 리뷰 + 오늘 목표 공유'] },
+      { type: 'routine', time: '11:00~14:00', label: '런치 (MODE A)', tasks: ['카운터 주문 접수 + 진동벨 배부', '빠른 서빙 (목표: 조리 완료 후 1분 이내)', '반찬 바 상태 수시 확인', '혼잡 시간 테이블 회전 관리'] },
+      { type: 'routine', time: '14:00~17:00', label: '브레이크', tasks: ['테이블 정리 및 세팅 복구', '반찬 재준비', '직원 교육/미팅 (주 2회)', '시스템 데이터 확인 (매니저)'] },
+      { type: 'routine', time: '17:00~22:00', label: '디너 (MODE B/C)', tasks: ['태블릿 주문 + 직접 서빙', '메뉴 추천 적극 수행 (AI 기반)', '주류 서빙 시 문화 설명', '서빙 2분 후 확인 방문 필수', '피드백 안내 (결제 전)'] },
+      { type: 'routine', time: '22:00~23:00', label: '마감', tasks: ['일일 마감 실행 (시스템)', '오늘의 피드백 리뷰', '반찬 재고 확인 + 내일 필요량 기록', '매장 청소 및 정리', '태블릿 충전 거치'] },
+    ],
+  },
+  {
+    id: 'kpi',
+    title: 'KPI & 인센티브',
+    subtitle: '직원 개인 KPI · 팀 인센티브',
+    icon: 'solar:chart-2-bold-duotone',
+    color: 'var(--w-accent)',
+    content: [
+      { type: 'kpi', metric: '평균 서빙 시간', target: '< 2분', method: 'KDS → 서빙 완료 시간' },
+      { type: 'kpi', metric: '고객 평점', target: '4.5+', method: '피드백 시스템' },
+      { type: 'kpi', metric: '일일 서빙 건수', target: '런치 20+ / 디너 15+', method: '주문 시스템' },
+      { type: 'kpi', metric: '업셀링 성공률', target: '20%+', method: '추천 메뉴 주문 비율' },
+      { type: 'kpi', metric: '반찬 리필 응답', target: '< 3분', method: '리필 요청 → 완료 시간' },
+    ],
+  },
+  {
+    id: 'incentive',
+    title: '팀 보상 체계',
+    subtitle: '월간/주간 달성 조건별 보상',
+    icon: 'solar:gift-bold-duotone',
+    color: 'var(--w-warning)',
+    content: [
+      { type: 'reward', condition: '월간 고객 평점 4.5+', reward: '팀 보너스 ₱5,000' },
+      { type: 'reward', condition: '월매출 목표 달성', reward: '팀 보너스 ₱10,000' },
+      { type: 'reward', condition: '0건 클레임 주간', reward: '팀 식사 제공' },
+      { type: 'reward', condition: '베스트 서버 (월간)', reward: '개인 보너스 ₱3,000' },
+    ],
+  },
+  {
+    id: 'checklists',
+    title: '품질 관리 체크리스트',
+    subtitle: '일일 · 주간 · 월간 점검 항목',
+    icon: 'solar:clipboard-check-bold-duotone',
+    color: 'var(--w-success)',
+    content: [
+      { type: 'checklist', period: '일일 (매니저)', items: ['모든 태블릿 정상 작동', '진동벨 30개 충전 상태', 'KDS 화면 정상', '반찬 준비 완료', '직원 복장 및 위생', '오늘의 피드백 알림 설정'] },
+      { type: 'checklist', period: '주간 (매니저)', items: ['직원 KPI 리뷰', '고객 피드백 트렌드 분석', '메뉴 성과 리뷰 (Menu Matrix)', '식자재 원가 변동 확인', '경쟁사 동향 체크', '전략 보드 KPI 업데이트'] },
+      { type: 'checklist', period: '월간 (경영진)', items: ['OKR 진척도 리뷰', '캠페인 ROI 분석', 'RFM 고객 세그먼트 변화', '직원 등급 업데이트', '신메뉴 도입 검토', 'AI 인사이트 종합 리뷰'] },
+    ],
+  },
+];
+
+function ServingGuideView({ guideSection, setGuideSection }: { guideSection: string | null; setGuideSection: (s: string | null) => void }) {
+  return (
+    <div className="space-y-2">
+      {/* Header Banner */}
+      <div className="rounded-2xl p-6 mb-4"
+        style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: 'var(--w-accent-dim)' }}>
+            <Icon icon="solar:document-text-bold-duotone" width={22} style={{ color: 'var(--w-accent)' }} />
+          </div>
+          <div>
+            <h3 className="font-bold text-base" style={{ color: 'var(--w-text)' }}>
+              K-Food 서빙 시스템 & 직원 교육 가이드
+            </h3>
+            <p className="text-[11px]" style={{ color: 'var(--w-text-muted)' }}>
+              강원푸드 iCAN 사업부 · 한국형 요식사업 운영 매뉴얼 v1.0
+            </p>
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--w-text-dim)' }}>
+          "한국인이 직접 서빙하는 진정한 K-Food 경험" — 섹션을 클릭하여 상세 내용을 확인하세요.
+        </p>
+      </div>
+
+      {/* Accordion Sections */}
+      {GUIDE_SECTIONS.map((section, i) => {
+        const isOpen = guideSection === section.id;
+        return (
+          <div key={section.id}
+            className="rounded-2xl overflow-hidden transition-all duration-300 ease-premium animate-fade-in-up"
+            style={{
+              backgroundColor: 'var(--w-surface)',
+              border: isOpen ? `1px solid ${section.color}` : '1px solid var(--w-border)',
+              animationDelay: `${i * 0.03}s`,
+            }}>
+            {/* Section Header */}
+            <button
+              onClick={() => setGuideSection(isOpen ? null : section.id)}
+              className="w-full px-5 py-4 flex items-center justify-between transition-all duration-300 ease-premium hover:opacity-80">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: isOpen ? section.color : 'var(--w-elevated)', opacity: isOpen ? 0.15 : 1 }}>
+                  <Icon icon={section.icon} width={18}
+                    style={{ color: isOpen ? section.color : 'var(--w-text-muted)', position: 'relative' }} />
+                </div>
+                <div className="text-left">
+                  <h4 className="font-bold text-sm" style={{ color: isOpen ? section.color : 'var(--w-text)' }}>
+                    {section.title}
+                  </h4>
+                  <p className="text-[11px]" style={{ color: 'var(--w-text-muted)' }}>{section.subtitle}</p>
+                </div>
+              </div>
+              <Icon icon={isOpen ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'}
+                width={16} style={{ color: 'var(--w-text-muted)' }} />
+            </button>
+
+            {/* Section Content */}
+            {isOpen && (
+              <div className="px-5 pb-5 animate-fade-in-up">
+                <div className="space-y-3" style={{ borderTop: '1px solid var(--w-border)', paddingTop: '16px' }}>
+                  {section.content.map((item: any, ci: number) => {
+                    if (item.type === 'heading') return (
+                      <h5 key={ci} className="font-bold text-xs mt-2" style={{ color: 'var(--w-text)' }}>{item.text}</h5>
+                    );
+                    if (item.type === 'list') return (
+                      <ul key={ci} className="space-y-1.5 ml-1">
+                        {item.items.map((li: string, li2: number) => (
+                          <li key={li2} className="text-xs flex items-start gap-2" style={{ color: 'var(--w-text-dim)' }}>
+                            <Icon icon="solar:arrow-right-linear" width={12} className="mt-0.5 flex-shrink-0" style={{ color: section.color }} />
+                            {li}
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                    if (item.type === 'highlight') return (
+                      <div key={ci} className="rounded-xl p-3" style={{ backgroundColor: 'var(--w-accent-dim)', borderLeft: `3px solid ${section.color}` }}>
+                        <p className="text-xs font-medium" style={{ color: 'var(--w-accent)' }}>{item.text}</p>
+                      </div>
+                    );
+                    if (item.type === 'comparison') return (
+                      <div key={ci} className="space-y-1.5">
+                        {item.items.map((c: any, c2: number) => (
+                          <div key={c2} className="flex items-center gap-2 text-xs">
+                            <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: 'var(--w-elevated)', color: 'var(--w-text-muted)' }}>{c.before}</span>
+                            <Icon icon="solar:arrow-right-linear" width={12} style={{ color: section.color }} />
+                            <span className="font-medium" style={{ color: 'var(--w-text)' }}>{c.after}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                    if (item.type === 'mode') return (
+                      <div key={ci} className="rounded-xl p-4" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'var(--w-info-dim)', color: 'var(--w-info)' }}>{item.label}</span>
+                          <span className="font-bold text-sm" style={{ color: 'var(--w-text)' }}>{item.name}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-md ml-auto" style={{ backgroundColor: 'var(--w-accent-dim)', color: 'var(--w-accent)' }}>{item.when}</span>
+                        </div>
+                        <p className="text-[11px] mb-2 leading-relaxed" style={{ color: 'var(--w-text-dim)' }}>{item.flow}</p>
+                        <p className="text-[10px]" style={{ color: 'var(--w-success)' }}>장점: {item.pros}</p>
+                      </div>
+                    );
+                    if (item.type === 'step') return (
+                      <div key={ci} className="rounded-xl p-4 flex gap-4" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold" style={{ backgroundColor: 'var(--w-success-dim)', color: 'var(--w-success)' }}>{item.num}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-sm" style={{ color: 'var(--w-text)' }}>{item.name}</span>
+                            <span className="text-[10px]" style={{ color: 'var(--w-text-muted)' }}>{item.action}</span>
+                          </div>
+                          <p className="text-xs mb-0.5" style={{ color: 'var(--w-accent)' }}>KO: "{item.ko}"</p>
+                          <p className="text-xs mb-1" style={{ color: 'var(--w-info)' }}>EN: "{item.en}"</p>
+                          <span className="text-[10px] px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--w-purple-dim)', color: 'var(--w-purple)' }}>{item.system}</span>
+                        </div>
+                      </div>
+                    );
+                    if (item.type === 'script') return (
+                      <div key={ci} className="rounded-xl p-4" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <h5 className="font-bold text-sm mb-2" style={{ color: 'var(--w-text)' }}>{item.menu}</h5>
+                        <div className="space-y-2">
+                          <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--w-accent-dim)' }}>
+                            <span className="text-[10px] font-bold" style={{ color: 'var(--w-accent)' }}>KO</span>
+                            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--w-text-dim)' }}>"{item.ko}"</p>
+                          </div>
+                          <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--w-info-dim)' }}>
+                            <span className="text-[10px] font-bold" style={{ color: 'var(--w-info)' }}>EN</span>
+                            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--w-text-dim)' }}>"{item.en}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                    if (item.type === 'grade') return (
+                      <div key={ci} className="rounded-xl p-4 flex items-start gap-3" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Icon icon="solar:medal-ribbons-star-bold" width={18} style={{ color: item.color }} />
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-sm" style={{ color: item.color }}>{item.level}</h5>
+                          <p className="text-[11px] mt-0.5" style={{ color: 'var(--w-text-muted)' }}>조건: {item.condition}</p>
+                          <p className="text-[11px]" style={{ color: 'var(--w-text-dim)' }}>역할: {item.role}</p>
+                          <p className="text-[11px]" style={{ color: 'var(--w-success)' }}>{item.training}</p>
+                        </div>
+                      </div>
+                    );
+                    if (item.type === 'banchan') return (
+                      <div key={ci} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <div className="flex items-center gap-3">
+                          <Icon icon="solar:bowl-bold-duotone" width={16} style={{ color: section.color }} />
+                          <span className="font-medium text-sm" style={{ color: 'var(--w-text)' }}>{item.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px]">
+                          <span style={{ color: item.refill ? 'var(--w-success)' : 'var(--w-warning)' }}>{item.refill ? '무제한 리필' : '유료 추가'}</span>
+                          <span style={{ color: 'var(--w-text-muted)' }}>원가 ₱{item.cost}/인</span>
+                          <span style={{ color: 'var(--w-text-muted)' }}>{item.note}</span>
+                        </div>
+                      </div>
+                    );
+                    if (item.type === 'routine') return (
+                      <div key={ci} className="rounded-xl p-4" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md tabular-nums" style={{ backgroundColor: 'var(--w-info-dim)', color: 'var(--w-info)' }}>{item.time}</span>
+                          <span className="font-bold text-sm" style={{ color: 'var(--w-text)' }}>{item.label}</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {item.tasks.map((t: string, ti: number) => (
+                            <li key={ti} className="text-xs flex items-start gap-2" style={{ color: 'var(--w-text-dim)' }}>
+                              <Icon icon="solar:check-circle-linear" width={13} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--w-success)' }} />
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                    if (item.type === 'kpi') return (
+                      <div key={ci} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <span className="font-medium text-sm" style={{ color: 'var(--w-text)' }}>{item.metric}</span>
+                        <div className="flex items-center gap-4 text-[11px]">
+                          <span className="font-bold" style={{ color: 'var(--w-accent)' }}>{item.target}</span>
+                          <span style={{ color: 'var(--w-text-muted)' }}>{item.method}</span>
+                        </div>
+                      </div>
+                    );
+                    if (item.type === 'reward') return (
+                      <div key={ci} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <span className="text-sm" style={{ color: 'var(--w-text)' }}>{item.condition}</span>
+                        <span className="font-bold text-sm" style={{ color: 'var(--w-warning)' }}>{item.reward}</span>
+                      </div>
+                    );
+                    if (item.type === 'checklist') return (
+                      <div key={ci} className="rounded-xl p-4" style={{ backgroundColor: 'var(--w-elevated)', border: '1px solid var(--w-border)' }}>
+                        <h5 className="font-bold text-sm mb-2" style={{ color: 'var(--w-text)' }}>{item.period}</h5>
+                        <ul className="space-y-1.5">
+                          {item.items.map((t: string, ti: number) => (
+                            <li key={ti} className="text-xs flex items-center gap-2" style={{ color: 'var(--w-text-dim)' }}>
+                              <div className="w-4 h-4 rounded border flex-shrink-0" style={{ borderColor: 'var(--w-border-light)' }} />
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                    return null;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
