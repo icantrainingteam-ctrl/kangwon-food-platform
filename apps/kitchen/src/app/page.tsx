@@ -24,7 +24,48 @@ export default function KitchenPage() {
   const fetchQueue = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/kitchen/queue`);
-      setOrders(await res.json());
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setOrders(data);
+        return;
+      }
+      // Fallback: queue가 비어있지만 stats에 pending이 있을 수 있음 (서버 호환성 이슈)
+      const ordersRes = await fetch(`${API_URL}/api/orders`);
+      const allOrders = await ordersRes.json();
+      const pending = (allOrders as any[]).filter((o: any) =>
+        ['pending', 'confirmed', 'preparing'].includes(o.status)
+      );
+      if (pending.length === 0) { setOrders([]); return; }
+      // 각 주문의 아이템 정보를 가져와서 KitchenOrderView 형태로 변환
+      const built = await Promise.all(pending.map(async (o: any) => {
+        const detailRes = await fetch(`${API_URL}/api/orders/${o.id}`);
+        const detail = await detailRes.json();
+        const metadata = o.metadata ?? {};
+        const elapsed = Math.floor((Date.now() - new Date(o.createdAt).getTime()) / 1000);
+        return {
+          id: o.id,
+          orderNumber: o.orderNumber,
+          tableId: o.tableId,
+          tableNumber: null,
+          serviceMode: metadata.serviceMode ?? 'table_tablet',
+          buzzerNumber: metadata.buzzerNumber,
+          items: (detail.items ?? []).map((i: any) => ({
+            id: i.id,
+            menuItemId: i.menuItemId,
+            name: i.name ?? `Item`,
+            quantity: i.quantity,
+            specialRequest: i.specialRequest,
+            status: i.status,
+            prepTimeMinutes: 15,
+            recipe: null,
+          })),
+          totalPrepTime: 15,
+          elapsedTime: elapsed,
+          priority: elapsed > 900 ? 'rush' : 'normal',
+          createdAt: o.createdAt,
+        };
+      }));
+      setOrders(built);
     } catch (err) {
       console.error('Failed to fetch queue:', err);
     }
