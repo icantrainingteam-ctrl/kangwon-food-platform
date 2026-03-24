@@ -37,32 +37,29 @@ export default function KitchenPage() {
       );
       if (pending.length === 0) { setOrders([]); return; }
       // 각 주문의 아이템 정보를 가져와서 KitchenOrderView 형태로 변환
-      const built = await Promise.all(pending.map(async (o: any) => {
+      const built: KitchenOrderView[] = await Promise.all(pending.map(async (o: any) => {
         const detailRes = await fetch(`${API_URL}/api/orders/${o.id}`);
         const detail = await detailRes.json();
         const metadata = o.metadata ?? {};
         const elapsed = Math.floor((Date.now() - new Date(o.createdAt).getTime()) / 1000);
         return {
-          id: o.id,
-          orderNumber: o.orderNumber,
-          tableId: o.tableId,
-          tableNumber: undefined,
-          serviceMode: metadata.serviceMode ?? 'table_tablet',
-          buzzerNumber: metadata.buzzerNumber,
+          id: o.id as string,
+          orderNumber: o.orderNumber as number,
+          serviceMode: (metadata.serviceMode ?? 'table_tablet') as KitchenOrderView['serviceMode'],
+          buzzerNumber: metadata.buzzerNumber as number | undefined,
           items: (detail.items ?? []).map((i: any) => ({
-            id: i.id,
-            menuItemId: i.menuItemId,
-            name: i.name ?? `Item`,
-            quantity: i.quantity,
-            specialRequest: i.specialRequest,
-            status: i.status,
+            id: i.id as string,
+            name: (i.name ?? 'Item') as string,
+            quantity: i.quantity as number,
+            specialRequest: i.specialRequest as string | undefined,
+            status: (i.status ?? 'pending') as KitchenOrderView['items'][0]['status'],
             prepTimeMinutes: 15,
-            recipe: null,
+            recipe: undefined,
           })),
           totalPrepTime: 15,
           elapsedTime: elapsed,
-          priority: elapsed > 900 ? 'rush' : 'normal',
-          createdAt: o.createdAt,
+          priority: (elapsed > 900 ? 'rush' : 'normal') as KitchenOrderView['priority'],
+          createdAt: o.createdAt as string,
         };
       }));
       setOrders(built);
