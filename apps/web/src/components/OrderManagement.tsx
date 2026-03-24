@@ -45,6 +45,32 @@ export function OrderManagement() {
     return () => es.close();
   }, [fetchData]);
 
+  const handleStatusChange = async (orderId: string, status: string) => {
+    try {
+      await fetch(`${API_URL}/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status }),
+      });
+      fetchData();
+    } catch (e) {
+      console.error('Failed to change status', e);
+    }
+  };
+
+  const handlePayment = async (orderId: string, amount: string) => {
+    try {
+      await fetch(`${API_URL}/api/orders/${orderId}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, paymentMethod: 'cash', amount: Number(amount) }),
+      });
+      fetchData();
+    } catch (e) {
+      console.error('Failed to process payment', e);
+    }
+  };
+
   const filteredOrders = filter === 'all'
     ? orders
     : orders.filter(o => o.status === filter);
@@ -135,6 +161,25 @@ export function OrderManagement() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm" style={{ color: 'var(--w-text-dim)' }}>결제 금액</span>
                   <span className="text-lg font-bold" style={{ color: 'var(--w-text)' }}>₱{Number(order.finalAmount).toLocaleString()}</span>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-4 pt-4 flex gap-2" style={{ borderTop: '1px solid var(--w-border)' }}>
+                  {order.status === 'pending' && (
+                    <button onClick={() => handleStatusChange(order.id, 'confirmed')} className="flex-1 py-2 rounded-lg text-sm font-bold opacity-90 hover:opacity-100 transition-all ease-premium" style={{ background: 'var(--w-info)', color: '#fff' }}>
+                      주문 접수
+                    </button>
+                  )}
+                  {order.status === 'ready' && (
+                    <button onClick={() => handleStatusChange(order.id, 'served')} className="flex-1 py-2 rounded-lg text-sm font-bold opacity-90 hover:opacity-100 transition-all ease-premium" style={{ background: 'var(--w-purple)', color: '#fff' }}>
+                      서빙 완료
+                    </button>
+                  )}
+                  {order.status === 'served' && (
+                    <button onClick={() => handlePayment(order.id, order.finalAmount)} className="flex-1 py-2 rounded-lg text-sm font-bold opacity-90 hover:opacity-100 transition-all ease-premium" style={{ background: 'var(--w-success)', color: '#fff' }}>
+                      현금 결제 완료
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

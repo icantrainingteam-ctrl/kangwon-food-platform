@@ -31,6 +31,7 @@ export function Cart({ lang, items, onUpdateQuantity, onRemove, onBack, onOrder,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceMode: 'table_tablet',
+          tableNumber,
           items: items.map(item => ({
             menuItemId: item.menuItem.id,
             quantity: item.quantity,

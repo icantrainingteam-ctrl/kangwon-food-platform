@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { db } from '@kangwon/db';
-import { orders, orderItems, orderEvents, tables, tableSessions } from '@kangwon/db/schema';
+import { orders, orderItems, orderEvents, tables, tableSessions, menuItems } from '@kangwon/db/schema';
 import { createOrderSchema, updateOrderStatusSchema, processPaymentSchema } from '@kangwon/shared';
-import { eq, desc, sql, and } from 'drizzle-orm';
+import { eq, desc, sql, and, inArray } from 'drizzle-orm';
 import { broadcastEvent } from '../ws/handler';
 
 export const orderRoutes = new Hono();
@@ -32,6 +32,14 @@ orderRoutes.get('/:id', async (c) => {
 orderRoutes.post('/', zValidator('json', createOrderSchema), async (c) => {
   const input = c.req.valid('json');
 
+  let finalTableId = input.tableId;
+  if (!finalTableId && input.tableNumber) {
+    const [tableRes] = await db.select().from(tables).where(eq(tables.number, input.tableNumber));
+    if (tableRes) {
+      finalTableId = tableRes.id;
+    }
+  }
+
   // 오늘 주문번호 생성
   const today = new Date().toISOString().split('T')[0];
   const countResult = await db.select({ count: sql<number>`COUNT(*)` })
@@ -39,42 +47,47 @@ orderRoutes.post('/', zValidator('json', createOrderSchema), async (c) => {
     .where(sql`DATE(${orders.createdAt}) = ${today}`);
   const orderNumber = (countResult[0]?.count ?? 0) + 1;
 
+  // 가격 조회
+  const menuIds = input.items.map(i => i.menuItemId);
+  const menus = await db.select({ id: menuItems.id, price: menuItems.price }).from(menuItems).where(inArray(menuItems.id, menuIds));
+  const priceMap = Object.fromEntries(menus.map(m => [m.id, Number(m.price)]));
+
+  let total = 0;
+  const itemsData = input.items.map(item => {
+    const unitPrice = priceMap[item.menuItemId] || 0;
+    const totalPrice = unitPrice * item.quantity;
+    total += totalPrice;
+    return { ...item, unitPrice, totalPrice };
+  });
+
   // 주문 생성
   const [newOrder] = await db.insert(orders).values({
     orderNumber,
-    tableId: input.tableId,
+    tableId: finalTableId,
     customerId: input.customerId,
     status: input.serviceMode === 'counter' ? 'confirmed' : 'pending', // 카운터는 선결제이므로 바로 confirmed
-    totalAmount: '0',
-    finalAmount: '0',
+    totalAmount: String(total),
+    finalAmount: String(total),
     metadata: { serviceMode: input.serviceMode, buzzerNumber: input.buzzerNumber },
   }).returning();
 
-  // 주문 아이템 삽입 (메뉴 가격 조회 필요 - 실제 구현 시)
-  // 여기서는 간략히 처리
-  let total = 0;
-  for (const item of input.items) {
-    // TODO: 실제 메뉴 가격 조회
-    const unitPrice = 0; // placeholder
-    const totalPrice = unitPrice * item.quantity;
-    total += totalPrice;
-
+  for (const item of itemsData) {
     await db.insert(orderItems).values({
       orderId: newOrder.id,
       menuItemId: item.menuItemId,
       quantity: item.quantity,
-      unitPrice: String(unitPrice),
-      totalPrice: String(totalPrice),
+      unitPrice: String(item.unitPrice),
+      totalPrice: String(item.totalPrice),
       specialRequest: item.specialRequest,
       status: 'pending',
     });
   }
 
   // 테이블 상태 업데이트
-  if (input.tableId) {
+  if (finalTableId) {
     await db.update(tables)
       .set({ status: 'occupied', updatedAt: new Date() })
-      .where(eq(tables.id, input.tableId));
+      .where(eq(tables.id, finalTableId));
   }
 
   // 이벤트 기록
@@ -87,7 +100,7 @@ orderRoutes.post('/', zValidator('json', createOrderSchema), async (c) => {
   // 실시간 브로드캐스트
   broadcastEvent({
     type: 'order:created',
-    payload: { orderId: newOrder.id, orderNumber, tableId: input.tableId, serviceMode: input.serviceMode },
+    payload: { orderId: newOrder.id, orderNumber, tableId: finalTableId, serviceMode: input.serviceMode },
     timestamp: new Date().toISOString(),
   });
 

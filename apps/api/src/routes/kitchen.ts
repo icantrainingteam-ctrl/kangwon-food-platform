@@ -10,7 +10,7 @@ export const kitchenRoutes = new Hono();
 kitchenRoutes.get('/queue', async (c) => {
   const activeOrders = await db.select()
     .from(orders)
-    .where(inArray(orders.status, ['confirmed', 'preparing']))
+    .where(inArray(orders.status, ['pending', 'confirmed', 'preparing']))
     .orderBy(orders.createdAt);
 
   const result = await Promise.all(activeOrders.map(async (order) => {
@@ -22,6 +22,7 @@ kitchenRoutes.get('/queue', async (c) => {
       specialRequest: orderItems.specialRequest,
       status: orderItems.status,
       prepTimeMinutes: menuItems.prepTimeMinutes,
+      recipe: menuItems.recipe,
     })
       .from(orderItems)
       .innerJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))

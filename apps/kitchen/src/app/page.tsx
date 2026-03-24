@@ -10,6 +10,16 @@ export default function KitchenPage() {
   const [orders, setOrders] = useState<KitchenOrderView[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing'>('all');
   const [stats, setStats] = useState({ totalOrders: 0, completedOrders: 0, pendingOrders: 0 });
+  const [expandedRecipes, setExpandedRecipes] = useState<Set<string>>(new Set());
+
+  const toggleRecipe = (itemId: string) => {
+    setExpandedRecipes(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  };
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -186,55 +196,94 @@ export default function KitchenPage() {
               {order.items.map(item => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-300 animate-slide-in"
+                  className="flex flex-col p-2.5 rounded-xl transition-all duration-300 animate-slide-in"
                   style={{
                     backgroundColor: item.status === 'ready' ? 'var(--kds-success-dim)'
                       : item.status === 'preparing' ? 'var(--kds-warning-dim)'
                       : 'rgba(255,255,255,0.03)',
                   }}
                 >
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium text-sm" style={{ color: 'var(--kds-text)' }}>
-                      {item.quantity > 1 && (
-                        <span className="font-bold mr-1.5" style={{ color: 'var(--kds-accent)' }}>x{item.quantity}</span>
+                  {/* Item Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <span 
+                        className={`font-medium text-sm flex items-center gap-1.5 flex-wrap ${item.recipe ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                        style={{ color: 'var(--kds-text)' }}
+                        onClick={() => item.recipe && toggleRecipe(item.id)}
+                      >
+                        {item.quantity > 1 && (
+                          <span className="font-bold" style={{ color: 'var(--kds-accent)' }}>x{item.quantity}</span>
+                        )}
+                        <span className={item.recipe ? 'underline decoration-dashed underline-offset-4 decoration-white/30' : ''}>
+                          {item.name}
+                        </span>
+                        {item.recipe && (
+                          <span
+                            className="p-1 min-h-[22px] rounded-md transition-colors flex items-center gap-1 text-[10px] font-bold"
+                            style={{ 
+                              backgroundColor: expandedRecipes.has(item.id) ? 'var(--kds-accent)' : 'rgba(255,255,255,0.1)',
+                              color: expandedRecipes.has(item.id) ? '#fff' : 'var(--kds-text-muted)',
+                              border: '1px solid rgba(255,255,255,0.05)'
+                            }}
+                            title="레시피 보기"
+                          >
+                            <Icon icon="solar:book-bookmark-bold" width={12} />
+                            {expandedRecipes.has(item.id) ? '닫기' : '레시피'}
+                          </span>
+                        )}
+                      </span>
+                      {item.specialRequest && (
+                        <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--kds-warning)' }}>
+                          <Icon icon="solar:danger-triangle-linear" width={11} />
+                          {item.specialRequest}
+                        </p>
                       )}
-                      {item.name}
-                    </span>
-                    {item.specialRequest && (
-                      <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--kds-warning)' }}>
-                        <Icon icon="solar:danger-triangle-linear" width={11} />
-                        {item.specialRequest}
-                      </p>
-                    )}
+                    </div>
+
+                    {/* Status Actions */}
+                    <div className="flex gap-1.5 ml-2 mt-0.5">
+                      {item.status === 'pending' && (
+                        <button
+                          onClick={() => updateItemStatus(item.id, 'preparing')}
+                          className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                          style={{ backgroundColor: 'var(--kds-warning)', color: '#000' }}
+                        >
+                          조리
+                        </button>
+                      )}
+                      {item.status === 'preparing' && (
+                        <button
+                          onClick={() => updateItemStatus(item.id, 'ready')}
+                          className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
+                          style={{ backgroundColor: 'var(--kds-success)', color: '#000' }}
+                        >
+                          완료
+                        </button>
+                      )}
+                      {item.status === 'ready' && (
+                        <span className="flex items-center gap-1 text-[11px] font-medium px-2"
+                              style={{ color: 'var(--kds-success)' }}>
+                          <Icon icon="solar:check-circle-bold" width={14} />
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Status Actions */}
-                  <div className="flex gap-1.5 ml-2">
-                    {item.status === 'pending' && (
-                      <button
-                        onClick={() => updateItemStatus(item.id, 'preparing')}
-                        className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: 'var(--kds-warning)', color: '#000' }}
-                      >
-                        조리
-                      </button>
-                    )}
-                    {item.status === 'preparing' && (
-                      <button
-                        onClick={() => updateItemStatus(item.id, 'ready')}
-                        className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 ease-premium hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: 'var(--kds-success)', color: '#000' }}
-                      >
-                        완료
-                      </button>
-                    )}
-                    {item.status === 'ready' && (
-                      <span className="flex items-center gap-1 text-[11px] font-medium px-2"
-                            style={{ color: 'var(--kds-success)' }}>
-                        <Icon icon="solar:check-circle-bold" width={14} />
-                      </span>
-                    )}
-                  </div>
+                  {/* Expanded Recipe View */}
+                  {item.recipe && expandedRecipes.has(item.id) && (
+                    <div className="mt-2 text-[11px] p-2.5 rounded-lg border leading-relaxed animate-fade-in-up" 
+                         style={{ 
+                           backgroundColor: 'rgba(0,0,0,0.2)', 
+                           borderColor: 'rgba(255,255,255,0.05)',
+                           color: 'var(--kds-text)' 
+                         }}>
+                      <div className="flex items-center gap-1 mb-1.5" style={{ color: 'var(--kds-accent)' }}>
+                        <Icon icon="solar:chef-hat-bold" width={12} />
+                        <span className="font-bold">표준 조리법 지시사항</span>
+                      </div>
+                      <div className="whitespace-pre-line text-xs opacity-90 pl-1">{item.recipe}</div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

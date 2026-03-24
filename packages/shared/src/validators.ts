@@ -3,6 +3,7 @@ import { z } from 'zod';
 // --- 주문 생성 ---
 export const createOrderSchema = z.object({
   tableId: z.string().uuid().optional(),
+  tableNumber: z.number().int().min(1).optional(),
   sessionToken: z.string().optional(),
   customerId: z.string().uuid().optional(),
   serviceMode: z.enum(['counter', 'table_tablet', 'staff_order']),

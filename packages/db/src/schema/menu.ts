@@ -37,6 +37,7 @@ export const menuItems = pgTable('menu_items', {
   imageUrl: varchar('image_url', { length: 500 }),
   allergens: jsonb('allergens').$type<string[]>().default([]), // ["gluten", "dairy"]
   tags: jsonb('tags').$type<string[]>().default([]), // ["spicy", "popular", "new"]
+  recipe: text('recipe'), // 조리법 지시사항
   prepTimeMinutes: integer('prep_time_minutes').default(15),
   isAvailable: boolean('is_available').default(true).notNull(),
   isPopular: boolean('is_popular').default(false).notNull(),

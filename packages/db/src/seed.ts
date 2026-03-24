@@ -56,15 +56,15 @@ async function seed() {
   // --- Menu Items ---
   const menuData = [
     // 한식 메인
-    { categoryId: catMap['한식 메인'], name: '비빔밥', nameEn: 'Bibimbap', price: '350', costPrice: '120', prepTimeMinutes: 12, isPopular: true },
-    { categoryId: catMap['한식 메인'], name: '불고기 정식', nameEn: 'Bulgogi Set', price: '450', costPrice: '180', prepTimeMinutes: 15, isPopular: true },
-    { categoryId: catMap['한식 메인'], name: '제육볶음', nameEn: 'Spicy Pork', price: '380', costPrice: '140', prepTimeMinutes: 12 },
-    { categoryId: catMap['한식 메인'], name: '닭갈비', nameEn: 'Dak-galbi', price: '420', costPrice: '160', prepTimeMinutes: 15 },
+    { categoryId: catMap['한식 메인'], name: '비빔밥', nameEn: 'Bibimbap', price: '350', costPrice: '120', prepTimeMinutes: 12, isPopular: true, recipe: '1. 밥 200g을 그릇에 담는다.\n2. 준비된 나물(시금치, 콩나물, 고사리, 도라지 등)을 색깔별로 예쁘게 올린다.\n3. 가운데 볶은 쇠고기를 올린다.\n4. 계란 프라이를 반숙으로 조리하여 올린다.\n5. 고추장 1스푼, 참기름 1티스푼을 곁들여 나간다.' },
+    { categoryId: catMap['한식 메인'], name: '불고기 정식', nameEn: 'Bulgogi Set', price: '450', costPrice: '180', prepTimeMinutes: 15, isPopular: true, recipe: '1. 달궈진 팬에 양념된 소고기 불고기 200g을 올린다.\n2. 양파 50g, 대파 30g, 당근 약간을 함께 넣고 강불에 3분간 빠르게 볶는다.\n3. 고기가 익으면 참기름 1티스푼과 깨소금을 뿌린다.\n4. 뚝배기나 철판에 옮겨 담고, 밥 1공기, 쌈채소와 함께 서빙한다.' },
+    { categoryId: catMap['한식 메인'], name: '제육볶음', nameEn: 'Spicy Pork', price: '380', costPrice: '140', prepTimeMinutes: 12, recipe: '1. 양념된 돼지고기 200g을 중불에 볶는다.\n2. 양파, 양배추, 대파를 넣고 강불로 올려 불맛을 낸다.\n3. 깨소금으로 마무리하여 접시에 담는다.' },
+    { categoryId: catMap['한식 메인'], name: '닭갈비', nameEn: 'Dak-galbi', price: '420', costPrice: '160', prepTimeMinutes: 15, recipe: '1. 철판에 양배추, 고구마, 가래떡을 깐다.\n2. 양념 닭다리살을 중앙에 올리고 중불에서 5분간 익힌다.\n3. 타지 않게 저어가며 채소 숨이 죽고 고기가 익을 때까지 볶는다.' },
     // 찌개/탕
-    { categoryId: catMap['찌개/탕'], name: '김치찌개', nameEn: 'Kimchi Jjigae', price: '320', costPrice: '100', prepTimeMinutes: 10, isPopular: true },
-    { categoryId: catMap['찌개/탕'], name: '된장찌개', nameEn: 'Doenjang Jjigae', price: '300', costPrice: '90', prepTimeMinutes: 10 },
-    { categoryId: catMap['찌개/탕'], name: '순두부찌개', nameEn: 'Sundubu Jjigae', price: '320', costPrice: '95', prepTimeMinutes: 10 },
-    { categoryId: catMap['찌개/탕'], name: '부대찌개 (2인)', nameEn: 'Army Stew (2p)', price: '580', costPrice: '200', prepTimeMinutes: 15 },
+    { categoryId: catMap['찌개/탕'], name: '김치찌개', nameEn: 'Kimchi Jjigae', price: '320', costPrice: '100', prepTimeMinutes: 10, isPopular: true, recipe: '1. 뚝배기에 묵은지 100g과 돼지고기 70g을 넣고 참기름에 살짝 볶는다.\n2. 사골육수 300ml를 붓고 끓인다.\n3. 끓어오르면 양파, 대파, 두부 3조각을 넣는다.\n4. 고춧가루 약간으로 색을 내고 2분 더 끓여 서빙한다.' },
+    { categoryId: catMap['찌개/탕'], name: '된장찌개', nameEn: 'Doenjang Jjigae', price: '300', costPrice: '90', prepTimeMinutes: 10, recipe: '1. 뚝배기에 멸치육수 300ml를 붓고 된장 1.5스푼을 푼다.\n2. 애호박, 양파, 감자를 썰어 넣고 끓인다.\n3. 끓어오르면 두부와 대파를 넣고 2분 끓인다.' },
+    { categoryId: catMap['찌개/탕'], name: '순두부찌개', nameEn: 'Sundubu Jjigae', price: '320', costPrice: '95', prepTimeMinutes: 10, recipe: '1. 뚝배기에 고추기름 1스푼, 파, 다진마늘, 바지락을 넣고 볶는다.\n2. 육수를 붓고 끓인다.\n3. 순두부 1봉지를 넣고, 계란 1개를 깨서 넣는다.' },
+    { categoryId: catMap['찌개/탕'], name: '부대찌개 (2인)', nameEn: 'Army Stew (2p)', price: '580', costPrice: '200', prepTimeMinutes: 15, recipe: '1. 전골냄비에 햄, 소시지, 김치, 베이크드빈스, 두부를 돌려 담는다.\n2. 가운데 라면사리와 치즈를 올린다.\n3. 육수 600ml를 붓고, 양념장을 올려 테이블용 버너와 함께 서빙한다.' },
     // 구이
     { categoryId: catMap['구이'], name: '삼겹살 (200g)', nameEn: 'Samgyeopsal', price: '500', costPrice: '220', prepTimeMinutes: 5, isPopular: true },
     { categoryId: catMap['구이'], name: '목살 (200g)', nameEn: 'Pork Neck', price: '480', costPrice: '200', prepTimeMinutes: 5 },
@@ -94,6 +94,7 @@ async function seed() {
     isPopular: m.isPopular ?? false,
     isSeasonal: m.tags?.includes('seasonal') ?? false,
     tags: m.tags ?? [],
+    recipe: (m as any).recipe ?? null,
   })));
   console.log('  ✅ Menu items seeded (26개 - 퓨전 메뉴 포함)');
 

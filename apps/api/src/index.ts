@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -21,15 +22,12 @@ const app = new Hono();
 // Middleware
 app.use('*', cors({
   origin: (origin) => {
-    // 로컬 개발
-    if (origin?.startsWith('http://localhost:')) return origin;
-    // Vercel 배포
-    if (origin?.endsWith('.vercel.app')) return origin;
-    // 커스텀 도메인 (추후 설정)
-    if (origin?.endsWith('.kangwonfood.com')) return origin;
-    return 'https://kangwon-web.vercel.app';
+    if (!origin) return 'http://localhost:3000';
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return origin;
+    if (origin.endsWith('.vercel.app') || origin.endsWith('.kangwonfood.com')) return origin;
+    return origin; // Fallback
   },
-  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 }));
 app.use('*', logger());
 

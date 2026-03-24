@@ -98,6 +98,7 @@ export interface KitchenItemView {
   specialRequest?: string;
   status: OrderItemStatus;
   prepTimeMinutes: number;
+  recipe?: string;
 }
 
 // --- 서빙 알림 (한국인 직원용) ---

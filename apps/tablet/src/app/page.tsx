@@ -32,9 +32,9 @@ const POPULAR_MENU = [
 // Menu categories (Unsplash CDN)
 const CATEGORIES = [
   { name: '메인 요리', nameEn: 'Main Dishes', icon: 'solar:chef-hat-bold-duotone', image: 'https://images.unsplash.com/photo-1583224964978-2257b960c3d3?w=400&h=300&fit=crop' },
-  { name: '바비큐', nameEn: 'BBQ', icon: 'solar:fire-bold-duotone', image: 'https://images.unsplash.com/photo-1643091577248-e6cb1d285a8f?w=400&h=300&fit=crop' },
+  { name: '바비큐', nameEn: 'BBQ', icon: 'solar:fire-bold-duotone', image: '/images/bbq_category.png' },
   { name: '국 & 찌개', nameEn: 'Soups & Stews', icon: 'solar:cup-hot-bold-duotone', image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400&h=300&fit=crop' },
-  { name: '사이드 & 디저트', nameEn: 'Sides & Dessert', icon: 'solar:donut-bold-duotone', image: 'https://images.unsplash.com/photo-1580651214613-f4692d6d138f?w=400&h=300&fit=crop' },
+  { name: '사이드 & 디저트', nameEn: 'Sides & Dessert', icon: 'solar:donut-bold-duotone', image: '/images/sides_category.png' },
 ];
 
 export default function TabletPage() {
