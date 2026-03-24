@@ -6,6 +6,24 @@ import { broadcastEvent } from '../ws/handler';
 
 export const kitchenRoutes = new Hono();
 
+// --- 디버그 (임시) ---
+kitchenRoutes.get('/debug', async (c) => {
+  try {
+    const rawOrders = await db.execute(sql`
+      SELECT id, order_number, status, table_id, created_at
+      FROM orders
+      WHERE status IN ('pending', 'confirmed', 'preparing')
+      LIMIT 10
+    `);
+    const drizzleOrders = await db.select({ id: orders.id, status: orders.status, orderNumber: orders.orderNumber })
+      .from(orders)
+      .where(sql`${orders.status} IN ('pending', 'confirmed', 'preparing')`);
+    return c.json({ v: '2', rawOrders: rawOrders.rows ?? rawOrders, drizzleOrders, timestamp: new Date().toISOString() });
+  } catch (err: unknown) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
 // --- 주방 대기열 (조리 대기 + 조리 중) ---
 kitchenRoutes.get('/queue', async (c) => {
   try {
