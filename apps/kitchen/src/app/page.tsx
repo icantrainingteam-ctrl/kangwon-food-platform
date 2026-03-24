@@ -46,7 +46,7 @@ export default function KitchenPage() {
           id: o.id,
           orderNumber: o.orderNumber,
           tableId: o.tableId,
-          tableNumber: null,
+          tableNumber: undefined,
           serviceMode: metadata.serviceMode ?? 'table_tablet',
           buzzerNumber: metadata.buzzerNumber,
           items: (detail.items ?? []).map((i: any) => ({
