@@ -31,3 +31,4 @@ drizzle/
 # Misc
 *.tsbuildinfo
 .vercel
+.env*.local

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '@kangwon/db';
-import { orders, orderItems, menuItems } from '@kangwon/db/schema';
+import { orders, orderItems, menuItems, tables } from '@kangwon/db/schema';
 import { eq, and, inArray, sql, desc } from 'drizzle-orm';
 import { broadcastEvent } from '../ws/handler';
 
@@ -8,12 +8,17 @@ export const kitchenRoutes = new Hono();
 
 // --- 주방 대기열 (조리 대기 + 조리 중) ---
 kitchenRoutes.get('/queue', async (c) => {
-  const activeOrders = await db.select()
+  const activeOrders = await db.select({
+      order: orders,
+      tableNumber: tables.number,
+    })
     .from(orders)
+    .leftJoin(tables, eq(orders.tableId, tables.id))
     .where(inArray(orders.status, ['pending', 'confirmed', 'preparing']))
     .orderBy(orders.createdAt);
 
-  const result = await Promise.all(activeOrders.map(async (order) => {
+  const result = await Promise.all(activeOrders.map(async (row) => {
+    const order = row.order;
     const items = await db.select({
       id: orderItems.id,
       menuItemId: orderItems.menuItemId,
@@ -35,6 +40,7 @@ kitchenRoutes.get('/queue', async (c) => {
       id: order.id,
       orderNumber: order.orderNumber,
       tableId: order.tableId,
+      tableNumber: row.tableNumber,
       serviceMode: metadata?.serviceMode ?? 'table_tablet',
       buzzerNumber: metadata?.buzzerNumber,
       items,
@@ -64,6 +70,22 @@ kitchenRoutes.patch('/item/:itemId/status', async (c) => {
     .returning();
 
   if (!updated) return c.json({ error: 'Item not found' }, 404);
+
+  // 아이템 하나라도 조리 시작하면, 주문 자체도 '조리중'으로 변경
+  if (status === 'preparing') {
+    const [order] = await db.select().from(orders).where(eq(orders.id, updated.orderId));
+    if (order && (order.status === 'pending' || order.status === 'confirmed')) {
+      await db.update(orders)
+        .set({ status: 'preparing' })
+        .where(eq(orders.id, updated.orderId));
+        
+      broadcastEvent({
+        type: 'order:status_changed',
+        payload: { orderId: updated.orderId, status: 'preparing' },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
 
   // 해당 주문의 모든 아이템이 ready인지 확인
   const allItems = await db.select()

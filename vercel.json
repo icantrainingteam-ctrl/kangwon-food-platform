@@ -1,7 +1,6 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo build --filter=@kangwon/web",
-  "outputDirectory": "apps/web/.next",
+  "buildCommand": "npx turbo build --filter=@kangwon/kitchen",
+  "outputDirectory": "apps/kitchen/.next",
   "framework": "nextjs",
   "installCommand": "npm install"
 }

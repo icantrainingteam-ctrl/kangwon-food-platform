@@ -120,6 +120,7 @@ export interface ServingAlert {
 export type WSEventType =
   | 'order:created'
   | 'order:confirmed'
+  | 'order:status_changed'
   | 'order:item_preparing'
   | 'order:item_ready'
   | 'order:ready'
