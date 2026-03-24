@@ -14,7 +14,7 @@ kitchenRoutes.get('/queue', async (c) => {
     })
     .from(orders)
     .leftJoin(tables, eq(orders.tableId, tables.id))
-    .where(inArray(orders.status, ['pending', 'confirmed', 'preparing']))
+    .where(sql`${orders.status} IN ('pending', 'confirmed', 'preparing')`)
     .orderBy(orders.createdAt);
 
   const result = await Promise.all(activeOrders.map(async (row) => {
