@@ -8,50 +8,55 @@ export const kitchenRoutes = new Hono();
 
 // --- 주방 대기열 (조리 대기 + 조리 중) ---
 kitchenRoutes.get('/queue', async (c) => {
-  const activeOrders = await db.select({
-      order: orders,
-      tableNumber: tables.number,
-    })
-    .from(orders)
-    .leftJoin(tables, eq(orders.tableId, tables.id))
-    .where(sql`${orders.status} IN ('pending', 'confirmed', 'preparing')`)
-    .orderBy(orders.createdAt);
+  try {
+    const activeOrders = await db.select({
+        order: orders,
+        tableNumber: tables.number,
+      })
+      .from(orders)
+      .leftJoin(tables, eq(orders.tableId, tables.id))
+      .where(sql`${orders.status} IN ('pending', 'confirmed', 'preparing')`)
+      .orderBy(orders.createdAt);
 
-  const result = await Promise.all(activeOrders.map(async (row) => {
-    const order = row.order;
-    const items = await db.select({
-      id: orderItems.id,
-      menuItemId: orderItems.menuItemId,
-      name: menuItems.name,
-      quantity: orderItems.quantity,
-      specialRequest: orderItems.specialRequest,
-      status: orderItems.status,
-      prepTimeMinutes: menuItems.prepTimeMinutes,
-      recipe: menuItems.recipe,
-    })
-      .from(orderItems)
-      .innerJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
-      .where(eq(orderItems.orderId, order.id));
+    const result = await Promise.all(activeOrders.map(async (row) => {
+      const order = row.order;
+      const items = await db.select({
+        id: orderItems.id,
+        menuItemId: orderItems.menuItemId,
+        name: menuItems.name,
+        quantity: orderItems.quantity,
+        specialRequest: orderItems.specialRequest,
+        status: orderItems.status,
+        prepTimeMinutes: menuItems.prepTimeMinutes,
+        recipe: menuItems.recipe,
+      })
+        .from(orderItems)
+        .innerJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
+        .where(eq(orderItems.orderId, order.id));
 
-    const metadata = order.metadata as Record<string, unknown>;
-    const elapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 1000);
+      const metadata = order.metadata as Record<string, unknown>;
+      const elapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 1000);
 
-    return {
-      id: order.id,
-      orderNumber: order.orderNumber,
-      tableId: order.tableId,
-      tableNumber: row.tableNumber,
-      serviceMode: metadata?.serviceMode ?? 'table_tablet',
-      buzzerNumber: metadata?.buzzerNumber,
-      items,
-      totalPrepTime: Math.max(...items.map(i => i.prepTimeMinutes ?? 15)),
-      elapsedTime: elapsed,
-      priority: elapsed > 900 ? 'rush' : 'normal', // 15분 초과 시 rush
-      createdAt: order.createdAt,
-    };
-  }));
+      return {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        tableId: order.tableId,
+        tableNumber: row.tableNumber,
+        serviceMode: metadata?.serviceMode ?? 'table_tablet',
+        buzzerNumber: metadata?.buzzerNumber,
+        items,
+        totalPrepTime: Math.max(...items.map(i => i.prepTimeMinutes ?? 15)),
+        elapsedTime: elapsed,
+        priority: elapsed > 900 ? 'rush' : 'normal',
+        createdAt: order.createdAt,
+      };
+    }));
 
-  return c.json(result);
+    return c.json(result);
+  } catch (err: unknown) {
+    console.error('Kitchen queue error:', err);
+    return c.json({ error: 'Failed to fetch queue', detail: String(err) }, 500);
+  }
 });
 
 // --- 주문 아이템 상태 업데이트 (개별 메뉴 조리 완료) ---
